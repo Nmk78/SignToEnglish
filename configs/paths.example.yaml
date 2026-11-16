@@ -1,0 +1,9 @@
+# Copy to configs/paths.local.yaml (git-ignored) to move any of these off the defaults.
+# Relative values are relative to the repo root. Environment variables S2E_DATA_ROOT,
+# S2E_CACHE_ROOT, S2E_RUNS_ROOT, S2E_ASSETS_ROOT, S2E_THIRD_PARTY_ROOT override this file.
+# Paths never enter a config hash.
+data_root: data
+cache_root: cache
+runs_root: runs
+assets_root: assets
+third_party_root: third_party

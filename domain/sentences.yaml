@@ -1,0 +1,216 @@
+# Small-talk sentence list for the SignToEnglish demo.
+#
+# STATUS: DRAFT, ASL NOT VERIFIED. Written 2026-11-16 by the planning model, which is not an ASL
+# authority. The English sentences and the vocabulary are a proposal. Nothing here says how a
+# sentence is signed.
+#
+# Before recording, for every sentence:
+#   1. Find its ASL version from a reliable source (an ASL course or dictionary with video, or a
+#      fluent signer). ASL has its own grammar and word order; do not sign the English word by word.
+#   2. Write that version in `asl:` and where it came from in `source:`.
+#   3. If the ASL version uses different signs than `signs:` lists, correct `signs:` and re-run the
+#      coverage check. Some English words here may have no separate sign in ASL (for example "is",
+#      "a", "to"), some concepts are one sign (for example THANK-YOU), and yes/no questions are
+#      usually marked by facial expression rather than a sign.
+#   4. Drop or replace any sentence the source cannot confirm.
+#
+# `signs:` is an unordered list of the concepts in the sentence, used only to check vocabulary
+# coverage. It is not ASL word order, and it is never a model input or target.
+#
+# "Alex" is a placeholder: replace it with the name you will fingerspell, and keep it short.
+#
+# role: train        -> recorded for training, validation, and the seen-sentence test
+# role: unseen_test  -> never used in training; tests translation of new sentences from known signs
+#
+# Coverage rule checked when this draft was generated: every sign in an unseen_test sentence
+# appears in at least 3 training sentences.
+
+domain: small_talk
+status: draft_asl_unverified
+sign_language: ase
+text_language: en
+
+vocabulary:
+  - {id: AGAIN, train_sentences: 1}
+  - {id: BROTHER, train_sentences: 2}
+  - {id: BUSY, train_sentences: 2}
+  - {id: COFFEE, train_sentences: 3}
+  - {id: COLD, train_sentences: 3}
+  - {id: DEAF, train_sentences: 2}
+  - {id: DRINK, train_sentences: 2}
+  - {id: EAT, train_sentences: 3}
+  - {id: FAMILY, train_sentences: 2}
+  - {id: FATHER, train_sentences: 3}
+  - {id: FINE, train_sentences: 2}
+  - {id: FOOD, train_sentences: 2}
+  - {id: FRIEND, train_sentences: 4}
+  - {id: GO, train_sentences: 3}
+  - {id: GOOD, train_sentences: 3}
+  - {id: GOODBYE, train_sentences: 1}
+  - {id: HAPPY, train_sentences: 3}
+  - {id: HAVE, train_sentences: 3}
+  - {id: HE-SHE, train_sentences: 1}
+  - {id: HEARING, train_sentences: 1}
+  - {id: HELLO, train_sentences: 1}
+  - {id: HELP, train_sentences: 2}
+  - {id: HERE, train_sentences: 1}
+  - {id: HOME, train_sentences: 3}
+  - {id: HOT, train_sentences: 3}
+  - {id: HOW, train_sentences: 2}
+  - {id: HUNGRY, train_sentences: 3}
+  - {id: I, train_sentences: 30}
+  - {id: KNOW, train_sentences: 1}
+  - {id: LEARN, train_sentences: 3}
+  - {id: LIKE, train_sentences: 6}
+  - {id: LIVE, train_sentences: 3}
+  - {id: MEET, train_sentences: 3}
+  - {id: MORE, train_sentences: 2}
+  - {id: MORNING, train_sentences: 3}
+  - {id: MOTHER, train_sentences: 4}
+  - {id: MOVIE, train_sentences: 1}
+  - {id: MUSIC, train_sentences: 2}
+  - {id: MY, train_sentences: 13}
+  - {id: NAME, train_sentences: 2}
+  - {id: NEED, train_sentences: 2}
+  - {id: NEW, train_sentences: 3}
+  - {id: NICE, train_sentences: 2}
+  - {id: NIGHT, train_sentences: 2}
+  - {id: NO, train_sentences: 1}
+  - {id: NOT, train_sentences: 3}
+  - {id: NOW, train_sentences: 3}
+  - {id: PHONE, train_sentences: 2}
+  - {id: PLEASE, train_sentences: 2}
+  - {id: RAIN, train_sentences: 1}
+  - {id: SCHOOL, train_sentences: 3}
+  - {id: SEE, train_sentences: 2}
+  - {id: SIGN, train_sentences: 4}
+  - {id: SISTER, train_sentences: 3}
+  - {id: SLOW, train_sentences: 1}
+  - {id: SORRY, train_sentences: 1}
+  - {id: STUDENT, train_sentences: 3}
+  - {id: TEACHER, train_sentences: 2}
+  - {id: THANK-YOU, train_sentences: 3}
+  - {id: TIRED, train_sentences: 3}
+  - {id: TODAY, train_sentences: 4}
+  - {id: TOMORROW, train_sentences: 3}
+  - {id: UNDERSTAND, train_sentences: 3}
+  - {id: WANT, train_sentences: 5}
+  - {id: WATER, train_sentences: 3}
+  - {id: WEATHER, train_sentences: 3}
+  - {id: WHAT, train_sentences: 3}
+  - {id: WHEN, train_sentences: 3}
+  - {id: WHERE, train_sentences: 3}
+  - {id: WHO, train_sentences: 3}
+  - {id: WHY, train_sentences: 1}
+  - {id: WORK, train_sentences: 6}
+  - {id: YES, train_sentences: 1}
+  - {id: YOU, train_sentences: 21}
+  - {id: YOUR, train_sentences: 7}
+  - {id: fs-NAME, train_sentences: 1}
+
+sentences:
+  # --- training sentences ---
+  - {id: t01, role: train, text: "Hello, how are you?", signs: [HELLO, HOW, YOU], asl: null, source: null}
+  - {id: t02, role: train, text: "Where does your mother live?", signs: [YOUR, MOTHER, LIVE, WHERE], asl: null, source: null}
+  - {id: t03, role: train, text: "My sister is hungry.", signs: [MY, SISTER, HUNGRY], asl: null, source: null}
+  - {id: t04, role: train, text: "My father is tired.", signs: [MY, FATHER, TIRED], asl: null, source: null}
+  - {id: t05, role: train, text: "The water is cold.", signs: [WATER, COLD], asl: null, source: null}
+  - {id: t06, role: train, text: "I like hot weather.", signs: [I, LIKE, HOT, WEATHER], asl: null, source: null}
+  - {id: t07, role: train, text: "Who is the new student?", signs: [WHO, NEW, STUDENT], asl: null, source: null}
+  - {id: t08, role: train, text: "When do you learn to sign?", signs: [YOU, LEARN, SIGN, WHEN], asl: null, source: null}
+  - {id: t09, role: train, text: "I am happy to meet your family.", signs: [I, HAPPY, MEET, YOUR, FAMILY], asl: null, source: null}
+  - {id: t10, role: train, text: "I want to meet your mother.", signs: [I, WANT, MEET, YOUR, MOTHER], asl: null, source: null}
+  - {id: t11, role: train, text: "I work in the morning.", signs: [I, WORK, MORNING], asl: null, source: null}
+  - {id: t12, role: train, text: "I am fine, thank you.", signs: [I, FINE, THANK-YOU], asl: null, source: null}
+  - {id: t13, role: train, text: "What is your name?", signs: [YOUR, NAME, WHAT], asl: null, source: null}
+  - {id: t14, role: train, text: "My name is Alex.", signs: [MY, NAME, fs-NAME], asl: null, source: null}
+  - {id: t15, role: train, text: "Nice to meet you.", signs: [NICE, MEET, YOU], asl: null, source: null}
+  - {id: t16, role: train, text: "Where do you live?", signs: [YOU, LIVE, WHERE], asl: null, source: null}
+  - {id: t17, role: train, text: "I live here.", signs: [I, LIVE, HERE], asl: null, source: null}
+  - {id: t18, role: train, text: "Where do you work?", signs: [YOU, WORK, WHERE], asl: null, source: null}
+  - {id: t19, role: train, text: "I work at a school.", signs: [I, WORK, SCHOOL], asl: null, source: null}
+  - {id: t20, role: train, text: "I am a student.", signs: [I, STUDENT], asl: null, source: null}
+  - {id: t21, role: train, text: "Are you a teacher?", signs: [YOU, TEACHER], asl: null, source: null}
+  - {id: t22, role: train, text: "My mother is a teacher.", signs: [MY, MOTHER, TEACHER], asl: null, source: null}
+  - {id: t23, role: train, text: "My father works today.", signs: [MY, FATHER, WORK, TODAY], asl: null, source: null}
+  - {id: t24, role: train, text: "I have a brother.", signs: [I, HAVE, BROTHER], asl: null, source: null}
+  - {id: t25, role: train, text: "Do you have a sister?", signs: [YOU, HAVE, SISTER], asl: null, source: null}
+  - {id: t26, role: train, text: "She is my friend.", signs: [HE-SHE, MY, FRIEND], asl: null, source: null}
+  - {id: t27, role: train, text: "Who is your friend?", signs: [YOUR, FRIEND, WHO], asl: null, source: null}
+  - {id: t28, role: train, text: "I am learning to sign.", signs: [I, LEARN, SIGN], asl: null, source: null}
+  - {id: t29, role: train, text: "Please sign slowly.", signs: [PLEASE, SIGN, SLOW], asl: null, source: null}
+  - {id: t30, role: train, text: "Please sign again.", signs: [PLEASE, SIGN, AGAIN], asl: null, source: null}
+  - {id: t31, role: train, text: "I don't understand.", signs: [I, UNDERSTAND, NOT], asl: null, source: null}
+  - {id: t32, role: train, text: "Do you understand?", signs: [YOU, UNDERSTAND], asl: null, source: null}
+  - {id: t33, role: train, text: "Yes, I understand.", signs: [YES, I, UNDERSTAND], asl: null, source: null}
+  - {id: t34, role: train, text: "Sorry, I don't know.", signs: [SORRY, I, KNOW, NOT], asl: null, source: null}
+  - {id: t35, role: train, text: "Are you deaf?", signs: [YOU, DEAF], asl: null, source: null}
+  - {id: t36, role: train, text: "I am hearing.", signs: [I, HEARING], asl: null, source: null}
+  - {id: t37, role: train, text: "I like coffee.", signs: [I, LIKE, COFFEE], asl: null, source: null}
+  - {id: t38, role: train, text: "Do you want water?", signs: [YOU, WANT, WATER], asl: null, source: null}
+  - {id: t39, role: train, text: "I want more food.", signs: [I, WANT, MORE, FOOD], asl: null, source: null}
+  - {id: t40, role: train, text: "I am hungry.", signs: [I, HUNGRY], asl: null, source: null}
+  - {id: t41, role: train, text: "Are you tired?", signs: [YOU, TIRED], asl: null, source: null}
+  - {id: t42, role: train, text: "I am happy today.", signs: [I, HAPPY, TODAY], asl: null, source: null}
+  - {id: t43, role: train, text: "I am busy now.", signs: [I, BUSY, NOW], asl: null, source: null}
+  - {id: t44, role: train, text: "The weather is good today.", signs: [WEATHER, GOOD, TODAY], asl: null, source: null}
+  - {id: t45, role: train, text: "It is cold today.", signs: [COLD, TODAY], asl: null, source: null}
+  - {id: t46, role: train, text: "It is hot now.", signs: [HOT, NOW], asl: null, source: null}
+  - {id: t47, role: train, text: "It will rain tomorrow.", signs: [RAIN, TOMORROW], asl: null, source: null}
+  - {id: t48, role: train, text: "Good morning.", signs: [GOOD, MORNING], asl: null, source: null}
+  - {id: t49, role: train, text: "Good night.", signs: [GOOD, NIGHT], asl: null, source: null}
+  - {id: t50, role: train, text: "See you tomorrow.", signs: [SEE, YOU, TOMORROW], asl: null, source: null}
+  - {id: t51, role: train, text: "Goodbye, my friend.", signs: [GOODBYE, MY, FRIEND], asl: null, source: null}
+  - {id: t52, role: train, text: "Thank you for your help.", signs: [THANK-YOU, YOUR, HELP], asl: null, source: null}
+  - {id: t53, role: train, text: "I need help.", signs: [I, NEED, HELP], asl: null, source: null}
+  - {id: t54, role: train, text: "I need to go home.", signs: [I, NEED, GO, HOME], asl: null, source: null}
+  - {id: t55, role: train, text: "I go to school tomorrow.", signs: [I, GO, SCHOOL, TOMORROW], asl: null, source: null}
+  - {id: t56, role: train, text: "When do you go home?", signs: [YOU, GO, HOME, WHEN], asl: null, source: null}
+  - {id: t57, role: train, text: "What do you like?", signs: [YOU, LIKE, WHAT], asl: null, source: null}
+  - {id: t58, role: train, text: "I like movies.", signs: [I, LIKE, MOVIE], asl: null, source: null}
+  - {id: t59, role: train, text: "Do you like music?", signs: [YOU, LIKE, MUSIC], asl: null, source: null}
+  - {id: t60, role: train, text: "I have a new phone.", signs: [I, HAVE, NEW, PHONE], asl: null, source: null}
+  - {id: t61, role: train, text: "My family is fine.", signs: [MY, FAMILY, FINE], asl: null, source: null}
+  - {id: t62, role: train, text: "I eat at home.", signs: [I, EAT, HOME], asl: null, source: null}
+  - {id: t63, role: train, text: "What do you want to eat?", signs: [YOU, WANT, EAT, WHAT], asl: null, source: null}
+  - {id: t64, role: train, text: "I drink coffee in the morning.", signs: [I, DRINK, COFFEE, MORNING], asl: null, source: null}
+  - {id: t65, role: train, text: "No, thank you.", signs: [NO, THANK-YOU], asl: null, source: null}
+  - {id: t66, role: train, text: "Why are you tired?", signs: [YOU, TIRED, WHY], asl: null, source: null}
+  - {id: t67, role: train, text: "I work at night.", signs: [I, WORK, NIGHT], asl: null, source: null}
+  - {id: t68, role: train, text: "My sister is a student.", signs: [MY, SISTER, STUDENT], asl: null, source: null}
+  - {id: t69, role: train, text: "My brother is deaf.", signs: [MY, BROTHER, DEAF], asl: null, source: null}
+  - {id: t70, role: train, text: "I learn at school.", signs: [I, LEARN, SCHOOL], asl: null, source: null}
+  - {id: t71, role: train, text: "My father is happy.", signs: [MY, FATHER, HAPPY], asl: null, source: null}
+  - {id: t72, role: train, text: "Is your mother busy?", signs: [YOUR, MOTHER, BUSY], asl: null, source: null}
+  - {id: t73, role: train, text: "Who is hungry?", signs: [WHO, HUNGRY], asl: null, source: null}
+  - {id: t74, role: train, text: "I am not cold.", signs: [I, COLD, NOT], asl: null, source: null}
+  - {id: t75, role: train, text: "Do you drink water?", signs: [YOU, DRINK, WATER], asl: null, source: null}
+  - {id: t76, role: train, text: "I am eating now.", signs: [I, EAT, NOW], asl: null, source: null}
+  - {id: t77, role: train, text: "The food is hot.", signs: [FOOD, HOT], asl: null, source: null}
+  - {id: t78, role: train, text: "How is the weather?", signs: [WEATHER, HOW], asl: null, source: null}
+  - {id: t79, role: train, text: "It is nice to see you.", signs: [NICE, SEE, YOU], asl: null, source: null}
+  - {id: t80, role: train, text: "Do you want more coffee?", signs: [YOU, WANT, MORE, COFFEE], asl: null, source: null}
+  - {id: t81, role: train, text: "My phone is new.", signs: [MY, PHONE, NEW], asl: null, source: null}
+  - {id: t82, role: train, text: "When do you work?", signs: [YOU, WORK, WHEN], asl: null, source: null}
+  - {id: t83, role: train, text: "My friend likes music.", signs: [MY, FRIEND, LIKE, MUSIC], asl: null, source: null}
+  # --- held out: never used in training; every sign appears in at least 3 training sentences ---
+  - {id: u01, role: unseen_test, text: "Where does your friend live?", signs: [YOUR, FRIEND, LIVE, WHERE], asl: null, source: null}
+  - {id: u02, role: unseen_test, text: "My mother works at a school.", signs: [MY, MOTHER, WORK, SCHOOL], asl: null, source: null}
+  - {id: u03, role: unseen_test, text: "I am tired today.", signs: [I, TIRED, TODAY], asl: null, source: null}
+  - {id: u04, role: unseen_test, text: "Do you like coffee?", signs: [YOU, LIKE, COFFEE], asl: null, source: null}
+  - {id: u05, role: unseen_test, text: "I want cold water.", signs: [I, WANT, COLD, WATER], asl: null, source: null}
+  - {id: u06, role: unseen_test, text: "My mother is a student.", signs: [MY, MOTHER, STUDENT], asl: null, source: null}
+  - {id: u07, role: unseen_test, text: "Are you hungry now?", signs: [YOU, HUNGRY, NOW], asl: null, source: null}
+  - {id: u08, role: unseen_test, text: "I don't like cold weather.", signs: [I, LIKE, COLD, WEATHER, NOT], asl: null, source: null}
+  - {id: u09, role: unseen_test, text: "When do you go to school?", signs: [YOU, GO, SCHOOL, WHEN], asl: null, source: null}
+  - {id: u10, role: unseen_test, text: "I go to work tomorrow.", signs: [I, GO, WORK, TOMORROW], asl: null, source: null}
+  - {id: u11, role: unseen_test, text: "My father is hungry.", signs: [MY, FATHER, HUNGRY], asl: null, source: null}
+  - {id: u12, role: unseen_test, text: "Do you have a new friend?", signs: [YOU, HAVE, NEW, FRIEND], asl: null, source: null}
+  - {id: u13, role: unseen_test, text: "I am happy to meet you.", signs: [I, HAPPY, MEET, YOU], asl: null, source: null}
+  - {id: u14, role: unseen_test, text: "Who is your sister?", signs: [YOUR, SISTER, WHO], asl: null, source: null}
+  - {id: u15, role: unseen_test, text: "I am learning at home.", signs: [I, LEARN, HOME], asl: null, source: null}
+  - {id: u16, role: unseen_test, text: "Do you understand my friend?", signs: [YOU, UNDERSTAND, MY, FRIEND], asl: null, source: null}
+  - {id: u17, role: unseen_test, text: "It is hot today.", signs: [HOT, TODAY], asl: null, source: null}
+  - {id: u18, role: unseen_test, text: "I eat in the morning.", signs: [I, EAT, MORNING], asl: null, source: null}
+  - {id: u19, role: unseen_test, text: "Thank you, my friend.", signs: [THANK-YOU, MY, FRIEND], asl: null, source: null}
+  - {id: u20, role: unseen_test, text: "What does your sister like?", signs: [YOUR, SISTER, LIKE, WHAT], asl: null, source: null}

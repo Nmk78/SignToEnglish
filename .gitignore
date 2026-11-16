@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local, never committed (CLAUDE.md, "Repo hygiene"). Anchored to the repo root so that
+# source packages such as src/signtoenglish/data/ are NOT ignored.
+/data/
+/cache/
+/runs/
+/assets/
+/third_party/
+/scratch/
+
+# Weights and model files
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# Videos: recordings and fixture clips stay local
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.avi
+/tests/fixtures/clips/
+
+# Secrets and machine-specific settings
+.env*
+/configs/paths.local.yaml
+
+# Web
+node_modules/
+.next/
+
+# macOS
+.DS_Store

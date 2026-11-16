@@ -1,0 +1,85 @@
+[project]
+name = "signtoenglish"
+version = "0.1.0"
+description = "Continuous ASL-to-English translation demo (personal, non-commercial)."
+readme = "README.md"
+requires-python = "==3.12.*"
+# Every entry is an exact pin (CLAUDE.md, "Pinned-version policy"); tests/test_pins.py enforces it.
+# Versions were read from pypi.org on 2026-11-16. Only W0 edits this file (WORKERS.md).
+dependencies = [
+    # ML
+    "torch==2.15.0",
+    "torchvision==0.29.2",
+    "einops==0.8.2",
+    "transformers==5.23.0",
+    "peft==0.21.3",
+    "sentencepiece==0.2.3",
+    "protobuf==7.36.2",
+    "numpy==2.5.5",
+    # Keypoints
+    "rtmlib==0.0.16",
+    "onnxruntime==1.32.0",
+    "opencv-python==5.0.0.93",
+    "opencv-contrib-python==5.0.0.93",
+    # Video I/O
+    "av==19.0.2",
+    # Config
+    "pydantic==2.14.3",
+    "PyYAML==6.0.3",
+    # Service
+    "fastapi==0.163.1",
+    "uvicorn==0.54.0",
+    "python-multipart==0.0.34",
+    "websockets==17.4",
+    # Metrics
+    "sacrebleu==2.6.0",
+    "rouge-score==0.1.2",
+]
+
+[project.scripts]
+s2e = "signtoenglish.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest==9.2.0",
+    "ruff==0.17.5",
+    "mypy==2.4.1",
+    "types-PyYAML==6.0.12.20261113",
+    "httpx==0.28.1",
+    "onnx==1.23.2",
+]
+
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/signtoenglish"]
+
+[tool.uv]
+required-version = "==0.13.8"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --import-mode=importlib"
+filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = ["third_party", "scratch", "web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "PTH", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# Packages that ship no type information.
+module = ["rtmlib.*", "onnxruntime.*", "rouge_score.*", "sacrebleu.*", "peft.*", "transformers.*"]
+ignore_missing_imports = true
