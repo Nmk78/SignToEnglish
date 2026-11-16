@@ -148,7 +148,7 @@ Continuous takes for Phase 3 use `data/manifests/domain_continuous_<split>.jsonl
 | Split | Contents | Purpose |
 | --- | --- | --- |
 | `train` | Takes of `role: train` sentences | Adaptation |
-| `val` | Different takes of `role: train` sentences, plus takes of about 15 `unseen` sentences set aside for validation | Choosing checkpoints, decoding settings, thresholds |
+| `val` | Different takes of `role: train` sentences, plus takes of 5 of the 20 `unseen` sentences set aside for validation (user decision, 2026-11-16) | Choosing checkpoints, decoding settings, thresholds |
 | `test_seen` | Further takes of `role: train` sentences, from a session not used in train where possible | Does it work on sentences it has practised |
 | `test_unseen` | Takes of the remaining `role: unseen_test` sentences, whose text never appears in train or val | Does it translate new sentences from known signs |
 
@@ -203,7 +203,8 @@ runs/<run_id>/
 ├── last.pt            # trainable weights, optimizer, scheduler, step, RNG states, history
 ├── best.pt            # trainable weights + {metric, value, step} that selected it
 ├── history.jsonl
-├── eval/<split>/      # hyps.txt, refs.txt, metrics.json (with sacreBLEU signature)
+├── eval/<split>/      # hyps.txt, refs.txt, predictions.jsonl (per-sentence rows with ids),
+│                      # metrics.json (with sacreBLEU signature)
 ├── test_runs.log      # every test scoring, with timestamp and checkpoint hash
 └── model_card.md      # base model, data, licenses and attributions, results, limits
 ```
