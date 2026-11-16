@@ -51,9 +51,7 @@ class SplitError(ValueError):
 
 class SplitConfig(FrozenConfig):
     # How many `role: unseen_test` sentences are set aside for validation; the rest form
-    # test_unseen. ARCHITECTURE.md says "about 15", written when the list was larger; the
-    # committed list has 20 unseen sentences, so the default here is 5. [assumed; the
-    # user confirms the number before the splits are built for real]
+    # test_unseen. 5 of the 20 (user decision, 2026-11-16; ARCHITECTURE.md, section 4.3).
     val_unseen_count: int = 5
     val_takes_per_sentence: int = 1
     test_seen_takes_per_sentence: int = 1
