@@ -60,11 +60,25 @@ def test_committed_sentence_list_loads_and_has_no_errors(repo_root: Path) -> Non
     assert report.errors == []
 
 
-def test_bare_yes_and_no_are_read_as_sign_ids_not_booleans(repo_root: Path) -> None:
+def test_committed_list_has_only_text_ids_and_signs(repo_root: Path) -> None:
     domain = load_domain(repo_root / "domain" / "sentences.yaml")
+    assert all(type(v.id) is str and v.id for v in domain.vocabulary)
+    assert all(type(s.id) is str and s.id for s in domain.sentences)
+    assert all(type(sign) is str and sign for s in domain.sentences for sign in s.signs)
     vocabulary = {v.id for v in domain.vocabulary}
     assert {"YES", "NO"} <= vocabulary
     assert "NO" in domain.by_id()["t65"].signs and "YES" in domain.by_id()["t33"].signs
+    # the shared loader agrees, now that YES and NO are quoted in the file
+    from signtoenglish.common.config import load_yaml
+
+    raw = load_yaml(repo_root / "domain" / "sentences.yaml")
+    assert [v["id"] for v in raw["vocabulary"]] == [v.id for v in domain.vocabulary]
+    assert [tuple(s["signs"]) for s in raw["sentences"]] == [s.signs for s in domain.sentences]
+
+
+def test_an_unquoted_yes_or_no_typed_by_hand_is_still_a_sign_id(tmp_path: Path) -> None:
+    domain = load_domain(_write(tmp_path, SMALL))  # SMALL writes NO without quotes
+    assert "NO" in {v.id for v in domain.vocabulary} and "NO" in domain.by_id()["t2"].signs
 
 
 def test_committed_list_meets_the_coverage_rule_counted_independently(repo_root: Path) -> None:

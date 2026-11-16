@@ -57,30 +57,30 @@ def test_prompts_from_the_committed_list(repo_root: Path) -> None:
     assert sum(p.role == "unseen_test" for p in prompts.prompts) == 20
 
 
-def test_prompts_match_the_validated_sentence_list(repo_root: Path) -> None:
-    """Two readers of one file must agree on ids, text, and roles."""
-    from signtoenglish.data.domain import load_domain
-
-    path = repo_root / "domain" / "sentences.yaml"
-    assert [(p.id, p.text, p.role) for p in load_prompts(path).prompts] == [
-        (s.id, s.text, s.role) for s in load_domain(path).sentences
+def test_recorder_refuses_a_sentence_list_with_errors(tmp_path: Path) -> None:
+    head = (
+        "domain: d\nsign_language: ase\ntext_language: en\nvocabulary:\n  - {id: A}\nsentences:\n"
+    )
+    line = '  - {{id: {id}, role: {role}, text: "{text}", signs: [{signs}]}}\n'
+    good = [
+        line.format(id=f"a{i}", role="train", text=f"Sentence {i}.", signs="A") for i in range(3)
     ]
-
-
-def test_prompt_loader_rejects_unusable_lists(tmp_path: Path) -> None:
-    head = "sign_language: ase\ntext_language: en\nsentences:\n"
     cases = {
-        "duplicate": '  - {id: a, role: train, text: "x"}\n  - {id: a, role: train, text: "y"}\n',
-        "no text": "  - {id: a, role: train, text: ''}\n",
-        "file name": '  - {id: "a/b", role: train, text: "x"}\n',
-        "role": '  - {id: a, role: test, text: "x"}\n',
-        "non-empty": "  []\n",
+        "duplicate_id": [*good, line.format(id="a0", role="train", text="Other.", signs="A")],
+        "duplicate_text": [
+            *good,
+            line.format(id="b", role="unseen_test", text="sentence 1", signs="A"),
+        ],
+        "unknown_sign": [*good, line.format(id="b", role="train", text="Other.", signs="ZZ")],
+        "coverage": [good[0], line.format(id="b", role="unseen_test", text="Other.", signs="A")],
+        "file name": [*good, line.format(id='"a/b"', role="train", text="Other.", signs="A")],
+        "role": [*good, line.format(id="b", role="test", text="Other.", signs="A")],
     }
+    path = tmp_path / "s.yaml"
     for expected, body in cases.items():
-        path = tmp_path / "s.yaml"
-        path.write_text(head + body)
+        path.write_text(head + "".join(body))
         with pytest.raises(ConfigError, match=expected):
             load_prompts(path)
-    path.write_text("sentences: []\n")
-    with pytest.raises(ConfigError, match="missing key"):
-        load_prompts(path)
+    path.write_text(head + "".join(good))
+    prompts = load_prompts(path)  # missing ASL versions warn, they do not block
+    assert [p.id for p in prompts.prompts] == ["a0", "a1", "a2"] and prompts.n_without_asl == 3
