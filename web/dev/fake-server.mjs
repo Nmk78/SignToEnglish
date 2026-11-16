@@ -13,6 +13,7 @@
 //
 // Test-only control endpoints, which the real service does not have:
 //   GET  /__dev/sessions   what each WebSocket session received
+//   GET  /__dev/last-frame the most recent JPEG received on any session (image/jpeg)
 //   POST /__dev/drop       cut every open WebSocket without a close handshake
 //   POST /__dev/reset      forget sessions, health back to ready
 //   POST /__dev/health     body {"mode": "ready" | "not_ready"}
@@ -37,6 +38,8 @@ const CANNED = [
 ];
 
 let healthMode = "ready";
+/** @type {Buffer | null} */
+let lastFrame = null;
 let nextSessionId = 1;
 /** @type {Array<Record<string, unknown>>} */
 let sessions = [];
@@ -159,6 +162,19 @@ const server = createServer((req, res) => {
     sendJson(res, 200, sessions);
     return;
   }
+  if (req.method === "GET" && url.pathname === "/__dev/last-frame") {
+    if (lastFrame === null) {
+      sendJson(res, 404, { detail: "No frame received yet." });
+      return;
+    }
+    res.writeHead(200, {
+      "content-type": "image/jpeg",
+      "content-length": lastFrame.length,
+      "access-control-allow-origin": "*",
+    });
+    res.end(lastFrame);
+    return;
+  }
   if (req.method === "POST" && url.pathname === "/__dev/drop") {
     const n = sockets.size;
     for (const ws of sockets) ws.terminate();
@@ -169,6 +185,7 @@ const server = createServer((req, res) => {
     for (const ws of sockets) ws.terminate();
     sessions = [];
     healthMode = "ready";
+    lastFrame = null;
     sendJson(res, 200, { ok: true });
     return;
   }
@@ -317,6 +334,7 @@ wss.on("connection", (ws) => {
     record.min_jpeg_bytes = record.min_jpeg_bytes === null ? jpegBytes : Math.min(record.min_jpeg_bytes, jpegBytes);
     record.max_jpeg_bytes = record.max_jpeg_bytes === null ? jpegBytes : Math.max(record.max_jpeg_bytes, jpegBytes);
     record.frames += 1;
+    lastFrame = Buffer.from(buf.subarray(8));
     framesSinceStatus += 1;
 
     if (segmentFrames === 0) segmentStartTs = ts;

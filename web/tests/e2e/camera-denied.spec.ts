@@ -3,7 +3,8 @@ import { fakeSessions, resetFake } from "./helpers";
 
 test.beforeEach(async ({ request }) => resetFake(request));
 
-// This project launches Chromium with --deny-permission-prompts, so getUserMedia is really refused.
+// This project launches Chromium so that it answers the camera prompt with "block": getUserMedia
+// is really refused with NotAllowedError; nothing in the page is replaced or mocked.
 test("refused camera permission gives a clear message and opens no stream", async ({ page, request }) => {
   await page.goto("/");
   await page.getByTestId("camera-start").click();

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { SEND_FPS, fakeSessions, resetFake, stampedFps } from "./helpers";
+import { FAKE, SEND_FPS, fakeSessions, resetFake, stampedFps } from "./helpers";
 
 test.beforeEach(async ({ request }) => resetFake(request));
 
@@ -58,8 +58,47 @@ test("webcam path: frames from the camera produce partial and committed captions
 });
 
 test("status bar reports a service that is not ready, with the reason", async ({ page, request }) => {
-  await request.post("http://127.0.0.1:8787/__dev/health", { data: { mode: "not_ready" } });
+  await request.post(`${FAKE}/__dev/health`, { data: { mode: "not_ready" } });
   await page.goto("/");
   await expect(page.getByTestId("service-status")).toContainText("Service not ready");
   await expect(page.getByTestId("service-status")).toContainText("not-ready mode");
+});
+
+// The base model has no left-right flip handling, so the service must get the picture as the
+// camera delivers it. The synthetic camera has a red band on its left edge and a blue band on
+// its right edge (scripts/make-test-media.mjs).
+test("the preview is mirrored for the signer, but the frames sent to the service are not", async ({ page, request }) => {
+  await page.goto("/");
+  await page.getByTestId("camera-start").click();
+  await expect(page.getByTestId("stream-phase")).toHaveText("Streaming");
+  await expect.poll(async () => (await fakeSessions(request))[0]?.frames ?? 0).toBeGreaterThan(5);
+
+  // What the signer sees is flipped horizontally.
+  const transform = await page.getByTestId("camera-video").evaluate((v) => getComputedStyle(v).transform);
+  expect(transform).toBe("matrix(-1, 0, 0, 1, 0, 0)");
+
+  // What the service received is not: decode the last JPEG it got and look at both edges.
+  const pixels = await page.evaluate(async (url) => {
+    const blob = await (await fetch(url)).blob();
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(bitmap, 0, 0);
+    const at = (x: number) => Array.from(ctx.getImageData(x, Math.floor(bitmap.height / 2), 1, 1).data.slice(0, 3));
+    return { width: bitmap.width, height: bitmap.height, left: at(80), right: at(bitmap.width - 80) };
+  }, `${FAKE}/__dev/last-frame`);
+  await page.getByTestId("camera-stop").click();
+
+  expect(pixels.width).toBe(640);
+  expect(pixels.height).toBe(480);
+  const [lr, lg, lb] = pixels.left as [number, number, number];
+  const [rr, rg, rb] = pixels.right as [number, number, number];
+  console.log(`[measured] sent frame: left edge rgb(${lr},${lg},${lb}), right edge rgb(${rr},${rg},${rb})`);
+  // Left edge red, right edge blue, as the camera delivers it.
+  expect(lr).toBeGreaterThan(180);
+  expect(lb).toBeLessThan(80);
+  expect(rb).toBeGreaterThan(180);
+  expect(rr).toBeLessThan(80);
 });

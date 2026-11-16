@@ -14,10 +14,10 @@ export const config = {
   /** WebSocket endpoint derived from the service URL. */
   streamUrl: `${serviceUrl.replace(/^http/, "ws")}/stream`,
   /**
-   * Frames per second sent to the service. ARCHITECTURE.md 6.2 says the browser sends at the
-   * model frame rate, which is "per base model" and not known to this track. 15 is an ASSUMED
-   * placeholder; set NEXT_PUBLIC_S2E_SEND_FPS from docs/base_model_notes.md at Wave 3. The
-   * service reduces by timestamp again, so a higher value costs bandwidth, not correctness.
+   * Frames per second sent to the service. 15 is an ASSUMED placeholder, not a property of the
+   * base model. Track A reported (relayed 2026-11-16, not checked by this track) that the model
+   * code has no fixed frame rate and uses every frame up to 256 per clip; the real value is to be
+   * chosen at Wave 3 and set with NEXT_PUBLIC_S2E_SEND_FPS at build time.
    */
   sendFps: numberFromEnv(process.env.NEXT_PUBLIC_S2E_SEND_FPS, 15),
   /** Frames wider than this are scaled down before JPEG encoding. */

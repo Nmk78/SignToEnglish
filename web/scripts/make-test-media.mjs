@@ -22,7 +22,11 @@ function ffmpeg(args) {
 export function makeTestMedia() {
   mkdirSync(mediaDir, { recursive: true });
   if (!existsSync(cameraFile)) {
-    ffmpeg(["-f", "lavfi", "-i", "testsrc2=size=640x480:rate=30", "-t", "10",
+    // A red band on the left edge and a blue band on the right edge of the picture as the camera
+    // delivers it, so a test can tell whether the frames sent to the service were mirrored.
+    const bands =
+      "drawbox=x=0:y=0:w=160:h=480:color=red:t=fill,drawbox=x=480:y=0:w=160:h=480:color=blue:t=fill";
+    ffmpeg(["-f", "lavfi", "-i", `testsrc2=size=640x480:rate=30,${bands}`, "-t", "10",
       "-c:v", "mjpeg", "-q:v", "4", "-pix_fmt", "yuvj420p", "-f", "mjpeg", cameraFile]);
   }
   if (!existsSync(clipFile)) {

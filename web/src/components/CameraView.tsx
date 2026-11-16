@@ -20,6 +20,7 @@ function cameraErrorText(error: unknown): string {
   if (name === "NotAllowedError" || name === "SecurityError") return CAMERA_MESSAGES.denied;
   if (name === "NotFoundError" || name === "OverconstrainedError") return CAMERA_MESSAGES.notFound;
   if (name === "NotReadableError" || name === "AbortError") return CAMERA_MESSAGES.busy;
+  if (name === "NotSupportedError") return CAMERA_MESSAGES.unsupported;
   return CAMERA_MESSAGES.other;
 }
 

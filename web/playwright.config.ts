@@ -47,7 +47,10 @@ export default defineConfig({
       use: {
         browserName: "chromium",
         launchOptions: {
-          args: ["--use-fake-device-for-media-stream", "--deny-permission-prompts"],
+          // "=deny" makes Chromium answer the camera prompt with "block", so getUserMedia
+          // rejects with a real NotAllowedError (measured with Playwright 1.65.1's headless
+          // shell; --deny-permission-prompts gives NotSupportedError there instead).
+          args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream=deny"],
         },
       },
     },
