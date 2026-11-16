@@ -21,7 +21,7 @@ ALLOWED: dict[str, tuple[str, ...]] = {
     "common": (),
     "preprocess": ("common",),
     "data": ("common", "preprocess.schema", "preprocess.cache", "preprocess.normalize"),
-    "record": ("common", "preprocess.video_io", "data.manifest"),
+    "record": ("common", "preprocess.video_io", "data.manifest", "data.domain"),
     "models": ("common",),
     "train": ("common", "data", "models", "eval"),
     "eval": ("common", "data", "models", "infer"),

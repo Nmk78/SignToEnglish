@@ -81,7 +81,7 @@ SignToEnglish/
 | `common` | standard library, pydantic, numpy | anything else in the project |
 | `preprocess` | `common` | `data`, `models`, `train`, `eval`, `infer`, `serve` |
 | `data` | `common`, `preprocess.schema`, `preprocess.cache`, `preprocess.normalize` | `train`, `infer`, `serve` |
-| `record` | `common`, `preprocess.video_io`, `data.manifest` | `models`, `train`, `infer`, `serve` |
+| `record` | `common`, `preprocess.video_io`, `data.manifest`, `data.domain` | `models`, `train`, `infer`, `serve` |
 | `models` | `common`, the third-party model code | `train`, `data`, `serve` |
 | `train` | `common`, `data`, `models`, `eval` | `infer`, `serve` |
 | `eval` | `common`, `data`, `models`, `infer` | `train`, `serve` |
@@ -128,7 +128,7 @@ File: `data/manifests/<dataset>_<split>.jsonl`, one row per sentence clip.
 | --- | --- | --- |
 | `id` | string | Unique |
 | `dataset` | string | `domain` or `how2sign` |
-| `split` | string | `train`, `val`, `test_seen`, `test_unseen`, or `test` |
+| `split` | string | `train`, `val`, `test_seen`, `test_unseen`, or `test`; `unassigned` for recorder output before splits are built (`domain_takes.jsonl`, `domain_continuous_takes.jsonl`) |
 | `source_path` | string | Relative to the data root |
 | `source_sha256` | string | Content hash of the video file |
 | `start_ms`, `end_ms` | int or null | Bounds inside the source; null when the file is one sentence |

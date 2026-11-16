@@ -75,7 +75,7 @@ vocabulary:
   - {id: NEW, train_sentences: 3}
   - {id: NICE, train_sentences: 2}
   - {id: NIGHT, train_sentences: 2}
-  - {id: NO, train_sentences: 1}
+  - {id: "NO", train_sentences: 1}
   - {id: NOT, train_sentences: 3}
   - {id: NOW, train_sentences: 3}
   - {id: PHONE, train_sentences: 2}
@@ -103,7 +103,7 @@ vocabulary:
   - {id: WHO, train_sentences: 3}
   - {id: WHY, train_sentences: 1}
   - {id: WORK, train_sentences: 6}
-  - {id: YES, train_sentences: 1}
+  - {id: "YES", train_sentences: 1}
   - {id: YOU, train_sentences: 21}
   - {id: YOUR, train_sentences: 7}
   - {id: fs-NAME, train_sentences: 1}
@@ -142,7 +142,7 @@ sentences:
   - {id: t30, role: train, text: "Please sign again.", signs: [PLEASE, SIGN, AGAIN], asl: null, source: null}
   - {id: t31, role: train, text: "I don't understand.", signs: [I, UNDERSTAND, NOT], asl: null, source: null}
   - {id: t32, role: train, text: "Do you understand?", signs: [YOU, UNDERSTAND], asl: null, source: null}
-  - {id: t33, role: train, text: "Yes, I understand.", signs: [YES, I, UNDERSTAND], asl: null, source: null}
+  - {id: t33, role: train, text: "Yes, I understand.", signs: ["YES", I, UNDERSTAND], asl: null, source: null}
   - {id: t34, role: train, text: "Sorry, I don't know.", signs: [SORRY, I, KNOW, NOT], asl: null, source: null}
   - {id: t35, role: train, text: "Are you deaf?", signs: [YOU, DEAF], asl: null, source: null}
   - {id: t36, role: train, text: "I am hearing.", signs: [I, HEARING], asl: null, source: null}
@@ -174,7 +174,7 @@ sentences:
   - {id: t62, role: train, text: "I eat at home.", signs: [I, EAT, HOME], asl: null, source: null}
   - {id: t63, role: train, text: "What do you want to eat?", signs: [YOU, WANT, EAT, WHAT], asl: null, source: null}
   - {id: t64, role: train, text: "I drink coffee in the morning.", signs: [I, DRINK, COFFEE, MORNING], asl: null, source: null}
-  - {id: t65, role: train, text: "No, thank you.", signs: [NO, THANK-YOU], asl: null, source: null}
+  - {id: t65, role: train, text: "No, thank you.", signs: ["NO", THANK-YOU], asl: null, source: null}
   - {id: t66, role: train, text: "Why are you tired?", signs: [YOU, TIRED, WHY], asl: null, source: null}
   - {id: t67, role: train, text: "I work at night.", signs: [I, WORK, NIGHT], asl: null, source: null}
   - {id: t68, role: train, text: "My sister is a student.", signs: [MY, SISTER, STUDENT], asl: null, source: null}
