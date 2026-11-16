@@ -238,16 +238,22 @@ All three numbers are estimates with no published anchor. If the measured result
 
 ## Approved assets
 
-Nothing is approved yet. Step 0.2 fills this in. No row, no download.
+**Nothing is approved yet.** Step 0.2 (2026-11-16) filled in the licenses, sizes, sources, and hashes below and put rows A1 to A8 to the user. A row counts as approved only when its last column holds the user's answer and the date. No approved row, no download. License details and obligations are in `docs/DATA_LICENSES.md`.
 
-| Asset | Purpose | License (URL, date read) | Size | Approved by user (date) |
-| --- | --- | --- | --- | --- |
-| Uni-Sign `openasl_pose_only_slt.pth` | Base model candidate | | 1.19 GB | |
-| Uni-Sign `how2sign_pose_only_slt.pth` | Base model candidate, reproduction check | | 1.19 GB | |
-| Uni-Sign code checkout at a pinned commit | Model definition and reference pipeline | none declared | | |
-| `google/mt5-base` | Text model required by the checkpoints | | about 2.3 GB [inferred] | |
-| RTMPose whole-body ONNX files used by `rtmlib` | Keypoints | | | |
-| How2Sign test keypoints from the Uni-Sign hub repo, and How2Sign translation CSVs | Reproduction check in Step 2.1 | | | |
+Sizes and hashes were read from the hosts' metadata on 2026-11-16 without downloading the files [verified as reported by the host]. Each hash is checked again after download and the loader refuses a mismatch.
+
+| # | Asset | Purpose | License (URL, date read) | Size | Source and pin | Approved by user (date) |
+| --- | --- | --- | --- | --- | --- | --- |
+| A1 | Uni-Sign `openasl_pose_only_slt.pth` | Base model candidate | CC BY-NC 4.0 (https://huggingface.co/ZechengLi19/Uni-Sign, 2026-11-16) | 1,186,924,838 bytes (1.19 GB) | https://huggingface.co/ZechengLi19/Uni-Sign/resolve/eab251b7fe7e8521afc0e67be98add670ea40a0d/openasl_pose_only_slt.pth, SHA-256 `f836ea66bc837bbe6ed717a4b9bece87875f03ef96d4bf1092ca3dd767982798` | pending |
+| A2 | Uni-Sign `how2sign_pose_only_slt.pth` | Base model candidate, reproduction check | CC BY-NC 4.0 (same page, 2026-11-16) | 1,186,925,007 bytes (1.19 GB) | same revision, `how2sign_pose_only_slt.pth`, SHA-256 `1bfd5f3312f04e4736f0a52f4ef9535916e6de9676a2a0d00c708748683fb00d` | pending |
+| A3 | Uni-Sign code, sparse checkout at commit `eed438bcb49e30405cd6ccdfcccca330c134e830` into `third_party/Uni-Sign/`: `models.py`, `config.py`, `datasets.py`, `utils.py`, `deformable_attention_2d.py`, `stgcn_layers/`, `demo/` (scripts and the bundled, patched `rtmlib` 0.0.13). Excludes `data/`, `out/`, and everything else. | Model definition and reference pipeline | **None declared** (https://api.github.com/repos/ZechengLi19/Uni-Sign reports `license: null`, 2026-11-16); bundled `rtmlib` copy is Apache-2.0 | about 0.4 MB | https://github.com/ZechengLi19/Uni-Sign | pending |
+| A4 | `google/mt5-base` tokenizer and configuration: `spiece.model`, `config.json`, `generation_config.json`, `tokenizer_config.json`, `special_tokens_map.json` | Tokenizer and model configuration required by the checkpoints | Apache-2.0 (https://huggingface.co/google/mt5-base, 2026-11-16) | 4.3 MB | https://huggingface.co/google/mt5-base at revision `2eb15465c5dd7f72a8f7984306ad05ebc3dd1e1f` | pending |
+| A5 | `google/mt5-base` weights `pytorch_model.bin` | Needed to run the reference code unmodified; every value is then overwritten by A1 or A2 (`docs/base_model_notes.md`, section 3) | Apache-2.0 (same page, 2026-11-16) | 2,329,735,129 bytes (2.33 GB) | same revision, SHA-256 `180573b534144580f04af026da62bf71bc976ee1b7eb311b8945e2fefde8d614` | pending |
+| A6 | Pose model files, `rtmlib` "lightweight" mode (the Uni-Sign demo default): `yolox_tiny_8xb8-300e_humanart-6f3252f9.zip` and `rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.zip`, each holding one `.onnx` | Keypoints | No license stated for the files; published by MMPose, which is Apache-2.0 (https://github.com/open-mmlab/mmpose/blob/main/LICENSE, 2026-11-16); mirror tagged Apache-2.0 (https://huggingface.co/Tau-J/RTMPose, 2026-11-16) | 18,887,737 and 120,002,068 bytes (139 MB together) | https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/yolox_tiny_8xb8-300e_humanart-6f3252f9.zip and https://download.openmmlab.com/mmpose/v1/projects/rtmw/onnx_sdk/rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.zip. Archive SHA-256 as reported by the mirror: `36e09ca555916253fa1b5d51bec01e48e98e1f0af966c51ce3e844d8c8fc4cfc` and `a6d08a575c9d8b8da7ce6c13e1c7341047fca35594a6d35de04b739eba51139c`. The SHA-256 of each extracted `.onnx` is recorded after download. | pending |
+| A7 | Pose model files, `rtmlib` "performance" mode: `yolox_m_8xb8-300e_humanart-c2c7a14a.zip` and `rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.zip` | Optional. Lets Step 0.3 compare against the larger estimator, because which estimator produced the training keypoints is not settled (`docs/base_model_notes.md`, section 2.1) | as A6 | 94,223,081 and 213,433,855 bytes (308 MB together) | https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/yolox_m_8xb8-300e_humanart-c2c7a14a.zip and https://download.openmmlab.com/mmpose/v1/projects/rtmw/onnx_sdk/rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.zip. Hashes recorded after download. | pending |
+| A8 | How2Sign keypoints from the Uni-Sign hub repository (`how2sign_pose_format.zip.00` to `.03`; all splits in one archive) and How2Sign test references | Reproduction check in Step 2.1 | Hub card CC BY-NC 4.0; derived from How2Sign, CC BY-NC 4.0 | 8,465,474,575 bytes (8.46 GB) for the keypoints | https://huggingface.co/ZechengLi19/Uni-Sign | **not requested in Step 0.2**; this is Step 2.1's stop point. Note that it is 8.46 GB, not a test-split-only file. |
+
+Total if A1 to A6 are approved: about 4.85 GB. With A7: about 5.16 GB.
 
 ## Candidate dependency versions
 
@@ -280,7 +286,26 @@ Read on 2026-11-16. Paper facts were read from arXiv PDFs. Web pages were read t
 | SignMusketeers repository returns 404 | project page link | verified |
 | Google YouTube-ASL baseline checkpoints not released | — | not verified (directory not opened) |
 | `sign-language-bridge` adapter: Apache-2.0, self-reported BLEU-4 1.64 | https://huggingface.co/mamounyosef/sign-language-bridge | verified as self-reported |
-| Licenses of `google/mt5-base`, `rtmlib`, RTMPose ONNX files | — | **not checked; Step 0.2** |
+| Licenses of `google/mt5-base`, `rtmlib`, RTMPose ONNX files | see "Step 0.2" below | checked in Step 0.2 |
+
+### Step 0.2 (2026-11-16, Track A)
+
+Read directly with `curl` from the hosts' raw-file and metadata endpoints; nothing was saved to disk. Line-level findings are in `docs/base_model_notes.md`; license terms are in `docs/DATA_LICENSES.md`.
+
+| Claim | Source | Status |
+| --- | --- | --- |
+| Uni-Sign weights are CC BY-NC 4.0 (model card front matter `license: cc-by-nc-4.0`; no license file in the hub repository); hub revision `eab251b7fe7e8521afc0e67be98add670ea40a0d`; file sizes and SHA-256 values in "Approved assets" | https://huggingface.co/ZechengLi19/Uni-Sign/raw/main/README.md, https://huggingface.co/api/models/ZechengLi19/Uni-Sign?blobs=true | verified |
+| Uni-Sign code still has no license (`license: null`; license endpoint 404; no license file in the tree); latest commit `eed438bcb49e30405cd6ccdfcccca330c134e830`, 2026-02-11 | https://api.github.com/repos/ZechengLi19/Uni-Sign, `/license`, `/commits`, `/git/trees/eed438b…?recursive=1` | verified |
+| The Uni-Sign code repository contains dataset label files (`data/How2Sign`, `data/OpenASL`, `data/CSL_Daily`, `data/WLASL`) and prediction and reference dumps (`out/`) | same file tree | verified (listed, not opened) |
+| `google/mt5-base` is Apache-2.0; revision `2eb15465c5dd7f72a8f7984306ad05ebc3dd1e1f`; `pytorch_model.bin` 2.33 GB | https://huggingface.co/google/mt5-base/raw/main/README.md, https://huggingface.co/api/models/google/mt5-base?blobs=true | verified |
+| `rtmlib` is Apache-2.0 | https://github.com/Tau-J/rtmlib/blob/main/LICENSE (GitHub API `spdx_id: Apache-2.0`); license file in the installed 0.0.16 package | verified |
+| RTMPose and YOLOX ONNX files: no license stated for the files; publisher MMPose is Apache-2.0; mirror `Tau-J/RTMPose` tagged Apache-2.0; sizes in "Approved assets" | https://github.com/open-mmlab/mmpose/blob/main/LICENSE, https://raw.githubusercontent.com/open-mmlab/mmpose/main/projects/rtmpose/README.md, https://huggingface.co/api/models/Tau-J/RTMPose, HTTP headers of the download URLs | verified. That Apache-2.0 covers the files: inferred. Terms of the 14 training datasets: not read |
+| The copy of `rtmlib` bundled with Uni-Sign is upstream 0.0.13 plus one change (keep the largest detection box) | in-memory diff of `demo/rtmlib-main/rtmlib/…` against https://raw.githubusercontent.com/Tau-J/rtmlib/0.0.13/rtmlib/… and against the installed 0.0.16 | verified |
+| Keypoints used, normalization, 0.3 score threshold, 256-frame default, no frame rate, 4 beams and 100 new tokens, prompt text, checkpoint format | Uni-Sign source at the commit above (`datasets.py`, `models.py`, `utils.py`, `fine_tuning.py`, `demo/`) | verified; see `docs/base_model_notes.md` |
+| The paper's keypoints came from "RTMPose-x from MMPose"; BLEU is from SacreBLEU; pose encoder 4.5 M and mT5-Base 582.4 M parameters | https://arxiv.org/html/2501.15187 (Appendix A.1, "Evaluation metrics" paragraph, Table 12) | verified |
+| The repository computes BLEU with `raw_corpus_bleu` from a vendored sacreBLEU 1.4.2 (no tokenization) | `SLRT_metrics.py:26-43`, `external_metrics/sacrebleu.py:43` | verified. Closes "BLEU implementation: not verified" above |
+| `decord` 0.6.0 has no macOS arm64 wheel; `deepspeed` 0.20.0 is source-only | https://pypi.org/pypi/decord/json, https://pypi.org/pypi/deepspeed/json | verified |
+| Which pose estimator produced the How2Sign and OpenASL training keypoints; their native frame rates; the `max_length` used for the two ASL checkpoints; whether `transformers` 5.23.0 tokenizes the prompt like 4.40.0; whether the checkpoints are stored in bfloat16 | — | **not verified**; first three are open, last two are Step 0.3 checks |
 
 ### Datasets
 
