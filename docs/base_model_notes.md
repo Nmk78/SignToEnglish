@@ -155,3 +155,37 @@ Reference pins that differ from ours (`requirements.txt`): `torch` 2.1.1+cu121 (
 2. ARCHITECTURE.md §4.5 gives `normalize_keypoints` one `model_inputs` output; the base model takes four arrays. A dict fits the signature, but `preprocess/schema.py` should say so.
 3. PLAN.md Step 2.1 expects "How2Sign test-split keypoints". The hub offers How2Sign keypoints only as one archive for all splits, in four parts totalling 8.46 GB, and the test references it pairs with are a pickled label file inside the code repository (`data/How2Sign/labels.test`, 94 KB), not the How2Sign CSVs. That stop point needs restating when Step 2.1 is reached.
 4. A full clone of the code repository would also bring dataset text: label files for How2Sign, OpenASL, CSL-Daily, and WLASL under `data/` (about 7.3 MB) and prediction and reference dumps under `out/`. The checkout proposed for approval is a sparse one that leaves those out.
+
+## 7. Step 1.1: what the port does, and what was measured (2026-11-17)
+
+Implemented in `src/signtoenglish/preprocess/` (`video_io.py`, `extract.py`, `normalize.py`, `schema.py`). Measured on this Mac with the lightweight pose models on CPU, on the two fixture clips (150 frames each).
+
+**Parity with the reference pipeline** (`tests/preprocess/test_parity.py`; the reference runs unmodified in its own process, with its bundled rtmlib 0.0.13):
+
+| Compared | Stated tolerance | Measured, `hands_visible` / `hands_leave` |
+| --- | --- | --- |
+| Raw keypoints, pixels | 1e-3 | 3.1e-5 / 6.0e-5 |
+| Scores | 1e-6 | 0 / 0 |
+| Model inputs | 1e-6 | 1.8e-7 / 1.6e-7 |
+| Normalization alone, same raw keypoints in | bit-identical as float32 | bit-identical |
+| Translated text and token ids (OpenASL checkpoint, CPU) | identical | identical |
+
+The remaining difference is the cache format storing pixel coordinates as float32 where the reference kept float64.
+
+**Decoding has to match OpenCV exactly, and now does.** The reference decodes with `cv2.VideoCapture`. PyAV's default conversion to BGR differs from it by up to 3 levels per pixel. That is invisible, but it moved low-confidence keypoints by up to 1,078 px, flipped 270 of 19,950 points across the 0.3 rule on `hands_leave`, and changed the whole-clip body box (model inputs off by up to 1.04). `video_io` therefore converts with swscale flags `POINT + ACCURATE_RND`, which gives frames bit-identical to OpenCV 5.0.0 on both fixtures (H.264 4:2:0 and 4:2:2), and a test compares every frame. [measured] Two consequences:
+
+- The model inputs are fragile to tiny pixel changes wherever keypoint scores sit near 0.3. The live path gets JPEG frames from the browser, which differ from the camera's pixels by far more than 3 levels, so live and file results for the same signing will not be identical, and the whole-clip body box amplifies single flipped points. This is a property of the base model's rule, not a port error. [inferred]
+- Equality with OpenCV 4.6, which the reference pinned, was not tested.
+
+**Frame rate.** `model_rate_fps` defaults to 30. Sources at or below it (30, 29.97, 25) keep every frame, which is what the reference does; faster sources are thinned by timestamp before pose estimation, identically in the file and live paths.
+
+**The two fixtures.** `hands_visible` is now a 5-second excerpt of a public-domain ASL video (`docs/DATA_LICENSES.md`); both hands pass the 0.3 rule in 150 of 150 frames (target 90%). `hands_leave` is the user's recording.
+
+**Where exact parity and PLAN.md's wording disagree** (parity implemented; each needs the user's decision):
+
+1. *Masked reference points.* PLAN.md: "changing the raw values of a masked keypoint does not change the normalized output". True for 66 of the 69 used keypoints, tested on synthetic arrays and on every masked point of `hands_leave`. Not true for points 91, 112, and 53 (each hand's root and the face reference): masked or not, their raw position shifts the rest of their group. A test pins that. Recommendation: keep parity and narrow the plan's wording.
+2. *The lowered right hand.* In `hands_leave`, after the hands leave the frame, the left hand is masked (at most 5% of frames pass) but the right hand still scores about 0.32 and passes in more than half of the frames. PLAN.md: "the presence mask is false for those frames". A test pins the actual behaviour. Recommendation: keep parity for the model inputs, and let the Phase 3 sentence-end detector use its own, stricter evidence (for example mean hand score and hand position) rather than this mask. Do not raise the 0.3 threshold for the model's inputs without the Step 2.1 reproduction check to measure the cost.
+3. *Blank video.* PLAN.md: "yields an all-false presence mask". It does, and `person_found` is false in every frame; but the reason is the base model's "fewer than 4 valid body points zeroes everything" rule. Some keypoints on black frames score up to 0.35. No decision needed; noted so nobody relies on scores being low on empty frames.
+4. *`person_found` is recorded but not used by normalization*, as in the reference. Recommendation: keep.
+
+**One real-signing data point.** Windows of the public-domain video were run through the port as a sanity check (scratch, not a test). The OpenASL checkpoint produced "If you think you have a flu or COVID-19 symptom, contact your doctor." for one 8-second window and sentences mentioning "60%" for another; the How2Sign checkpoint was less coherent on the same input. The signer's actual words in those seconds were not checked against a transcript, so this is topical agreement with a COVID-19 prevention video, not a measured translation. It is the first sign that the port translates real ASL, and it favours the OpenASL checkpoint; Step 2.1 measures it properly. [measured output; interpretation inferred]

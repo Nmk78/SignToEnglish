@@ -28,6 +28,14 @@ No dataset has been downloaded. Terms as verified in planning (`OPEN_QUESTIONS.m
 | Dataset text inside the Uni-Sign code repository (`data/*/labels.*`, `out/eval_*`) | The datasets' own licenses | Excluded from the proposed checkout. Not read, not downloaded. |
 | Domain recordings made for this project | Belong to the signer | Local, git-ignored, used only for this project unless the signer agrees otherwise. Manifest `license` value: `own-recording`. |
 
+## Test fixture video that is not the user's own
+
+| Asset | License | Where it was read | Obligations and notes |
+| --- | --- | --- | --- |
+| `COVID-19 Prevention Tips in ASL.webm`, Centers for Disease Control and Prevention, 2020, from Wikimedia Commons | Public domain: a work of the U.S. federal government (Commons template `PD-USGov-HHS-CDC`). [verified] | https://commons.wikimedia.org/wiki/File:COVID-19_Prevention_Tips_in_ASL.webm and https://commons.wikimedia.org/wiki/Template:PD-USGov-HHS-CDC, 2026-11-17 | None required. Used only as a local test fixture: the original and a 5-second excerpt (`tests/fixtures/clips/hands_visible.mp4`) are git-ignored and are not committed, redistributed, or shown in docs or screenshots. It is not training data and not part of any dataset. It shows an identifiable person (a professional signer in a public health video); keep its use to automated tests. Public-domain status covers copyright only. |
+
+The two fixtures now differ: `hands_visible` is this excerpt (a fluent signer, studio background, 29.97 frames per second); `hands_leave` is the user's own webcam recording (30 frames per second, head-and-shoulders framing). That does not matter for what they test (decoding, timestamps, extraction, normalization, parity with the reference, the score rule). It does mean neither fixture says anything about how the system does on the demo signer in the demo framing; the domain recordings do that.
+
 ## Terms that models trained here inherit
 
 An adapted model combines the Uni-Sign weights (CC BY-NC 4.0) with adapters trained on the signer's recordings. It is non-commercial, needs attribution to Uni-Sign, and is not redistributed. Each run's `model_card.md` repeats this (`CLAUDE.md`, "License rules").
@@ -36,4 +44,5 @@ An adapted model combines the Uni-Sign weights (CC BY-NC 4.0) with adapters trai
 
 - Uni-Sign: Li, Zhou, Zhao, Wu, Hu, Li. "Uni-Sign: Toward Unified Sign Language Understanding at Scale", ICLR 2025, arXiv:2501.15187. Weights under CC BY-NC 4.0. https://github.com/ZechengLi19/Uni-Sign
 - RTMPose and RTMW whole-body pose models from MMPose (OpenMMLab), run through `rtmlib` (author listed as Tau-J), both Apache-2.0. https://github.com/open-mmlab/mmpose, https://github.com/Tau-J/rtmlib
+- Test fixture: "COVID-19 Prevention Tips in ASL", Centers for Disease Control and Prevention, public domain, via Wikimedia Commons. Credit is not required; listed for the record. It is not shown on the demo page.
 - mT5-Base: Xue et al., "mT5: A massively multilingual pre-trained text-to-text transformer", NAACL 2021. Apache-2.0. https://huggingface.co/google/mt5-base
