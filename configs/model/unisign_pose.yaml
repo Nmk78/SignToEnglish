@@ -1,0 +1,49 @@
+# The translator (validated by signtoenglish.infer.loader.ModelConfig).
+#
+# Base model: Uni-Sign pose-only (weights CC BY-NC 4.0; code unlicensed, kept in third_party/).
+# Every file is local and pinned by SHA-256; nothing is fetched. `relative_path` and the
+# directory names are locations under the assets and third-party roots.
+translator:
+  reference_dir: Uni-Sign
+  reference_commit: eed438bcb49e30405cd6ccdfcccca330c134e830
+  reference_files:
+    models.py: e4ce146e084e7edce20d244024f97db6404311529be31161ff23df040dbbd8ac
+    config.py: c41a90a809b470bd2511a03fbc2e8a51ba92ffd6227ec351c518e936ffb1f15e
+    deformable_attention_2d.py: 2e4d0994de9dda41df38a3775d8e5802306f744326c83f7e88db906e767d30a4
+    stgcn_layers/__init__.py: a559e0c42b8c1bf6d129d92d841e5e9ec10452d67f3d2bc4f3fcfb870be6f54b
+    stgcn_layers/gcn_utils.py: e459226ea042b7b7a0ab0ce8c9a5256ff455655802958e9ea6a0e93004f78c8c
+    stgcn_layers/stgcn_block.py: 86d5da3b3b78276056cb5b84658120eaca71c2c851ab04688c4164c725192b63
+  mt5_dir: mt5-base
+  mt5_files:
+    config.json: 7ce360bdccf5b665dbb8c32f6912f1d8fd394aa553c133863283a16503d6d550
+    spiece.model: ef78f86560d809067d12bac6c09f19a462cb3af3f54d2b8acbba26e1433125d6
+    tokenizer_config.json: 3be4bbd24c65845b1dc86186f3c7d1d61ac2e29154cb0d71133753562f8d1959
+    special_tokens_map.json: 09059cedc26bc46bc09a52f05b92d4922e11917e87f3b92059bb1a63a59ab2c4
+    generation_config.json: f5a1c7e2be8092018d8835128987edf0111637dd98e90599cc80310fef75d95a
+  checkpoints:
+    openasl:
+      relative_path: unisign/openasl_pose_only_slt.pth
+      sha256: f836ea66bc837bbe6ed717a4b9bece87875f03ef96d4bf1092ca3dd767982798
+      dataset: OpenASL      # sets the prompt language to English
+    how2sign:
+      relative_path: unisign/how2sign_pose_only_slt.pth
+      sha256: 1bfd5f3312f04e4736f0a52f4ef9535916e6de9676a2a0d00c708748683fb00d
+      dataset: How2Sign
+  # Which checkpoint is used when none is named. Step 2.3 decides this on domain validation.
+  default_checkpoint: openasl
+  hidden_dim: 256
+  label_smoothing: 0.2
+  # The base model's training-time maximum; longer inputs are thinned to evenly spaced frames.
+  max_frames: 256
+  mt5_parameters: 582401280
+  expected_prompt_ids: [89349, 11329, 17896, 1552, 288, 5413, 267, 1]
+  # The reference's decoding settings. Step 2.3 may change them on validation.
+  decode:
+    num_beams: 4
+    max_new_tokens: 100
+# The base model's normalization. These are the pretrained weights' training values.
+normalize:
+  score_threshold: 0.3
+  min_valid_body_points: 4
+# auto picks MPS when available, otherwise CPU.
+device: auto

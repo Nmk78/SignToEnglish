@@ -362,6 +362,17 @@ Measured on this machine (Apple M5, 16 GB, macOS 27.0.1; `torch` 2.15.0, `transf
 | A cache entry for a 150-frame clip is 245,680 bytes, about 1.6 kB per frame | `s2e extract` on the fixture clips | measured. About 270 MB for 1.5 hours at 30 frames per second [inferred] |
 | Extraction throughput with the new commands, lightweight models: 11.3 to 14.1 frames per second on CPU and 26.1 to 29.6 with the pose model on CoreML, measured while the machine's load average was 6.5 with other sessions running. The Step 0.3 and 1.1 figures on the same clips with the machine quieter were 20.1 to 24.3 and 41.4 to 47.2; the Step 0.3 script re-run under the same load gave 10.3, so the difference is load, not the code | `s2e bench extract`, `scratch/spike_pose.py` | measured |
 
+### Step 2.1 (2026-11-17, Track A)
+
+| Claim | Source | Status |
+| --- | --- | --- |
+| The wrapper's output token ids equal those of the whole reference pipeline run in its own process, for both checkpoints and both fixture clips, and equal the reference's two-step path with the extra mT5 pass | `tests/models/test_translator.py` | measured |
+| CPU and MPS give identical token ids and losses within 1e-3 through the wrapper | same | measured |
+| The reference's batch padding changes the last six real frames' features of a shorter clip and can change its text | same | measured |
+| Building mT5 without initialization leaves encoder and decoder embeddings as separate tensors (966,573,312 parameters instead of 582,401,280) unless they are pointed at the shared table by hand | first wrapper run, then `Translator.load` | measured; handled and checked on every load |
+| The Uni-Sign code's BLEU is `raw_corpus_bleu`: no tokenization, floor smoothing with value 0, effective order | https://raw.githubusercontent.com/ZechengLi19/Uni-Sign/eed438bcb49e30405cd6ccdfcccca330c134e830/external_metrics/sacrebleu.py lines 2008 to 2024, read 2026-11-17 | verified |
+| The How2Sign reproduction check | — | **not run**: the keypoints (8.46 GB) and the label file are not approved or downloaded |
+
 ### Datasets
 
 | Claim | Source | Status |
