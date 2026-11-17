@@ -1,6 +1,6 @@
 # CLAUDE.md — SignToEnglish
 
-Durable rules for every session in this repo. Read `PLAN.md` for what to build next, `ARCHITECTURE.md` for how it is laid out, `OPEN_QUESTIONS.md` for decisions and their status, and `REUSE.md` before touching the old prototype.
+Durable rules for every session in this repo. Read `STATUS.md` first for where the project stands and what is waiting on whom. Read `PLAN.md` for what to build next, `ARCHITECTURE.md` for how it is laid out, `OPEN_QUESTIONS.md` for decisions and their status, and `REUSE.md` before touching the old prototype.
 
 ## What this project is
 
