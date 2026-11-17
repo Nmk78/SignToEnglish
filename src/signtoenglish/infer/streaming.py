@@ -68,6 +68,8 @@ from signtoenglish.models.boundary import (
 )
 from signtoenglish.models.translator import DecodeConfig
 from signtoenglish.preprocess.cache import KeypointCache, Source, get_or_extract
+from signtoenglish.preprocess.extract import LiveExtractor as LiveExtractor  # for `serve`
+from signtoenglish.preprocess.extract import PoseCore as PoseCore  # re-exported for `serve`
 from signtoenglish.preprocess.schema import NUM_KEYPOINTS, KeypointConfig
 from signtoenglish.preprocess.schema import RawKeypoints as RawKeypoints  # re-exported for `eval`
 
@@ -583,17 +585,25 @@ def offline_decoder(
 # --- replay ------------------------------------------------------------------------------------
 
 
+def load_pose_core(paths: PathsConfig, keypoint_cfg: KeypointConfig) -> PoseCore:
+    """The pose estimator of the one extraction path, for a caller that keeps it loaded (the
+    service: one `PoseCore` shared by every `LiveExtractor` and by uploaded files)."""
+    return PoseCore(keypoint_cfg, paths.assets_root)
+
+
 def keypoints_for_replay(
-    video: str | Path, paths: PathsConfig, keypoint_cfg: KeypointConfig
+    video: str | Path,
+    paths: PathsConfig,
+    keypoint_cfg: KeypointConfig,
+    core: PoseCore | None = None,
 ) -> tuple[RawKeypoints, str]:
     """A video's raw keypoints through the keypoint cache, extracting them on a miss (the
-    pose models load only then). Returns them with "cached" or "extracted"."""
-    from signtoenglish.preprocess.extract import PoseCore
-
+    pose models load only then, unless the caller hands in a loaded `core`). Returns them
+    with "cached" or "extracted"."""
     entry, outcome = get_or_extract(
         Source(path=Path(video), expected_sha256=None, origin="replay"),
         KeypointCache(paths.cache_root, keypoint_cfg),
-        lambda: PoseCore(keypoint_cfg, paths.assets_root),
+        (lambda: core) if core is not None else (lambda: load_pose_core(paths, keypoint_cfg)),
     )
     if entry is None:
         raise StreamError(outcome.detail)
