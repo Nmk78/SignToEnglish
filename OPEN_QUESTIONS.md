@@ -371,6 +371,9 @@ Measured on this machine (Apple M5, 16 GB, macOS 27.0.1; `torch` 2.15.0, `transf
 | The reference's batch padding changes the last six real frames' features of a shorter clip and can change its text | same | measured |
 | Building mT5 without initialization leaves encoder and decoder embeddings as separate tensors (966,573,312 parameters instead of 582,401,280) unless they are pointed at the shared table by hand | first wrapper run, then `Translator.load` | measured; handled and checked on every load |
 | The Uni-Sign code's BLEU is `raw_corpus_bleu`: no tokenization, floor smoothing with value 0, effective order | https://raw.githubusercontent.com/ZechengLi19/Uni-Sign/eed438bcb49e30405cd6ccdfcccca330c134e830/external_metrics/sacrebleu.py lines 2008 to 2024, read 2026-11-17 | verified |
+| Keypoints from the CoreML pose model against the CPU one, same frames, text through the wrapper on MPS: identical in 7 of 8 inputs with the OpenASL checkpoint and 6 of 8 with How2Sign (two fixture clips and six 8-second windows of the public-domain ASL video). Largest score difference 0.022. Where the text changed it was a different wording of a similar sentence for the signing clips, and a different sentence for the non-signing clips | `scratch/coreml_text_probe.py` | measured. Not a quality comparison: no reference translations |
+| Decoding time per sentence on MPS, 150 to 240 frames, with other work running on the machine: OpenASL median 0.75 s (maximum 1.18 s); How2Sign median 1.14 s (maximum 1.66 s). Model load through the wrapper: 3 to 8 s | same script; `Translator.load` | measured |
+| `S2E_REQUIRE_ASSETS=1 make check`: 264 passed in 8 min 13 s with the machine's load average between 4.5 and 6.2 | local run | measured. No quiet-machine figure for this revision |
 | The How2Sign reproduction check | — | **not run**: the keypoints (8.46 GB) and the label file are not approved or downloaded |
 
 ### Datasets
