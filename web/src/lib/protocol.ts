@@ -1,4 +1,5 @@
-// Wire format of the local service, from ARCHITECTURE.md section 6.3. Types and parsing only.
+// Wire format of the local service: ARCHITECTURE.md section 6.3 plus the details fixed by the
+// service itself (src/signtoenglish/serve/ws.py and app.py). Types and parsing only.
 
 export type SegmentId = string | number;
 
@@ -16,6 +17,9 @@ export interface CaptionMessage {
   start_ms: number | null;
   end_ms: number | null;
   latency_ms: number | null;
+  decode_ms: number | null;
+  /** On a final: what ended the sentence (for example "boundary", "max_length", "flush"). */
+  closed_by: string | null;
 }
 
 export interface StatusMessage {
@@ -24,6 +28,31 @@ export interface StatusMessage {
   queue_depth: number | null;
   rtf: number | null;
   signing: boolean;
+  frames_received: number | null;
+  /** Frames the service dropped unprocessed since the session began, because it was behind. */
+  frames_dropped: number | null;
+  frames_processed: number | null;
+  pose_fps: number | null;
+}
+
+/** A stretch of the stream the service did not translate, and why. */
+export interface DroppedMessage {
+  type: "dropped";
+  segment_id: SegmentId | null;
+  start_ms: number | null;
+  end_ms: number | null;
+  reason: string;
+}
+
+/** Sent once after "stop", just before the service closes the socket. */
+export interface SummaryMessage {
+  type: "summary";
+  /** False when the service gave up waiting for the last frames or the last decode. */
+  complete: boolean | null;
+  stream_ms: number | null;
+  frames_received: number | null;
+  frames_dropped: number | null;
+  frames_processed: number | null;
 }
 
 export interface ErrorMessage {
@@ -31,7 +60,7 @@ export interface ErrorMessage {
   detail: string;
 }
 
-export type ServerMessage = CaptionMessage | StatusMessage | ErrorMessage;
+export type ServerMessage = CaptionMessage | StatusMessage | ErrorMessage | DroppedMessage | SummaryMessage;
 
 export interface HealthResponse {
   status: "ready" | "not_ready";
@@ -39,6 +68,8 @@ export interface HealthResponse {
   checkpoint_id: string | null;
   preprocessing_hash: string | null;
   device: string | null;
+  /** The base checkpoint's name (an addition of the service; absent from the architecture document). */
+  checkpoint: string | null;
 }
 
 export interface TranslateSegment {
@@ -47,11 +78,22 @@ export interface TranslateSegment {
   end_ms: number;
 }
 
+export interface SkippedStretch {
+  start_ms: number | null;
+  end_ms: number | null;
+  reason: string;
+}
+
 export interface TranslateResponse {
   text: string;
   segments: TranslateSegment[];
+  /** Stretches of the file that were not sent to the model, and why. */
+  skipped: SkippedStretch[];
   timings: Record<string, number>;
+  /** One line describing the model, built from the service's `model` object. */
   model: string | null;
+  /** How sentence ends were found (for example "fixed_length"). */
+  boundary: string | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -96,6 +138,8 @@ export function parseServerMessage(raw: unknown): ServerMessage | null {
       start_ms: numOrNull(value.start_ms),
       end_ms: numOrNull(value.end_ms),
       latency_ms: numOrNull(value.latency_ms),
+      decode_ms: numOrNull(value.decode_ms),
+      closed_by: strOrNull(value.closed_by),
     };
   }
   if (value.type === "status") {
@@ -105,6 +149,31 @@ export function parseServerMessage(raw: unknown): ServerMessage | null {
       queue_depth: numOrNull(value.queue_depth),
       rtf: numOrNull(value.rtf),
       signing: value.signing === true,
+      frames_received: numOrNull(value.frames_received),
+      frames_dropped: numOrNull(value.frames_dropped),
+      frames_processed: numOrNull(value.frames_processed),
+      pose_fps: numOrNull(value.pose_fps),
+    };
+  }
+  if (value.type === "dropped") {
+    const id = value.segment_id;
+    return {
+      type: "dropped",
+      segment_id: typeof id === "string" || typeof id === "number" ? id : null,
+      start_ms: numOrNull(value.start_ms),
+      end_ms: numOrNull(value.end_ms),
+      reason: strOrNull(value.reason) ?? "unknown",
+    };
+  }
+  if (value.type === "summary") {
+    const frames = isRecord(value.frames) ? value.frames : {};
+    return {
+      type: "summary",
+      complete: typeof value.complete === "boolean" ? value.complete : null,
+      stream_ms: numOrNull(value.stream_ms),
+      frames_received: numOrNull(frames.received),
+      frames_dropped: numOrNull(frames.dropped_behind),
+      frames_processed: numOrNull(frames.processed),
     };
   }
   if (value.type === "error") {
@@ -122,6 +191,7 @@ export function parseHealth(value: unknown): HealthResponse | null {
     checkpoint_id: strOrNull(value.checkpoint_id),
     preprocessing_hash: strOrNull(value.preprocessing_hash),
     device: strOrNull(value.device),
+    checkpoint: strOrNull(value.checkpoint),
   };
 }
 
@@ -141,10 +211,29 @@ export function parseTranslateResponse(value: unknown): TranslateResponse | null
       if (typeof v === "number" && Number.isFinite(v)) timings[key] = v;
     }
   }
-  // The shape of `model` is not fixed by the architecture document; show a string if there is one.
+  const skipped: SkippedStretch[] = [];
+  if (Array.isArray(value.skipped)) {
+    for (const item of value.skipped) {
+      if (!isRecord(item)) continue;
+      skipped.push({
+        start_ms: numOrNull(item.start_ms),
+        end_ms: numOrNull(item.end_ms),
+        reason: strOrNull(item.reason) ?? "unknown",
+      });
+    }
+  }
+  // The service sends `model` as an object: {checkpoint, checkpoint_id, device, fine_tuned, ...}.
   let model: string | null = strOrNull(value.model);
-  if (model === null && isRecord(value.model)) model = strOrNull(value.model.checkpoint_id);
-  return { text: value.text, segments, timings, model };
+  if (model === null && isRecord(value.model)) {
+    const m = value.model;
+    const parts = [
+      strOrNull(m.checkpoint) ?? strOrNull(m.checkpoint_id),
+      m.fine_tuned === true ? "adapted" : m.fine_tuned === false ? "not adapted" : null,
+      strOrNull(m.device),
+    ].filter((part): part is string => part !== null);
+    model = parts.length > 0 ? parts.join(" · ") : null;
+  }
+  return { text: value.text, segments, skipped, timings, model, boundary: strOrNull(value.boundary) };
 }
 
 /** Turns an error body's `detail` (a string, or FastAPI's list of validation errors) into text. */
@@ -157,6 +246,22 @@ export function detailText(detail: unknown): string | null {
     if (parts.length > 0) return parts.join("; ");
   }
   return null;
+}
+
+/** Why the service did not translate a stretch, in plain words. */
+export function dropReasonText(reason: string): string {
+  switch (reason) {
+    case "no_signing":
+      return "no signing was seen (hands not in view)";
+    case "too_short":
+      return "it was too short to be a sentence";
+    case "empty":
+      return "it held no frames";
+    case "backlog":
+      return "the translator was too far behind";
+    default:
+      return reason;
+  }
 }
 
 export function formatMediaTime(ms: number): string {

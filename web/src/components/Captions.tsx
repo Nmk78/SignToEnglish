@@ -1,7 +1,8 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef } from "react";
-import type { Caption } from "@/hooks/useStream";
+import type { Caption, NotTranslated } from "@/hooks/useStream";
+import { dropReasonText } from "@/lib/protocol";
 
 interface CaptionsProps {
   committed: Caption[];
@@ -12,18 +13,22 @@ interface CaptionsProps {
   spokenAloud: boolean;
   /** Read-aloud controls, shown above the captions. */
   controls?: ReactNode;
+  /** Stretches the service did not translate in this session. */
+  notTranslated: NotTranslated | null;
+  /** True after Stop while the service is still finishing the last sentence. */
+  finishing: boolean;
 }
 
 /** Committed sentences (final, never change) and, below them, the unstable partial line. */
-export function Captions({ committed, partial, active, onClear, spokenAloud, controls }: CaptionsProps) {
+export function Captions({ committed, partial, active, onClear, spokenAloud, controls, notTranslated, finishing }: CaptionsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [committed.length, partial?.text]);
+  }, [committed.length, partial?.text, finishing]);
 
-  const empty = committed.length === 0 && partial === null;
+  const empty = committed.length === 0 && partial === null && !finishing;
 
   return (
     <section className="panel captions-panel" aria-labelledby="captions-heading">
@@ -67,9 +72,21 @@ export function Captions({ committed, partial, active, onClear, spokenAloud, con
                 <span className="caption-partial-tag">in progress · may change</span>
               </p>
             )}
+            {finishing && (
+              <p className="caption-finishing" role="status" data-testid="caption-finishing">
+                Finishing the last sentence…
+              </p>
+            )}
           </>
         )}
       </div>
+
+      {notTranslated && (
+        <p className="notice" data-testid="not-translated">
+          {notTranslated.count === 1 ? "1 stretch was" : `${notTranslated.count} stretches were`} not translated; the
+          last one because {dropReasonText(notTranslated.lastReason)}.
+        </p>
+      )}
 
       <p className="notice" data-testid="experimental-notice">
         Experimental output. Captions can be wrong, including when they read fluently.

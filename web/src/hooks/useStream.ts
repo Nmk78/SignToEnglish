@@ -6,12 +6,27 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { config } from "@/lib/config";
 import { type ClockKind, FramePump, type PumpStats, ZERO_STATS, frameSize } from "@/lib/framePump";
-import { type SegmentId, type StartMessage, type StatusMessage, parseServerMessage } from "@/lib/protocol";
+import {
+  type SegmentId,
+  type StartMessage,
+  type StatusMessage,
+  type SummaryMessage,
+  parseServerMessage,
+} from "@/lib/protocol";
 
 export type StreamPhase = "idle" | "connecting" | "streaming" | "stopping";
 
-/** Why a session ended: the user (or the end of the file) stopped it, or the connection failed. */
-export type EndReason = "stopped" | "lost" | "unreachable";
+/**
+ * Why a session ended: the user (or the end of the file) stopped it; the connection was lost;
+ * the service could not be reached; or the service ended the stream itself and said why.
+ */
+export type EndReason = "stopped" | "lost" | "unreachable" | "refused";
+
+/** Stretches the service reported as not translated in this session. */
+export interface NotTranslated {
+  count: number;
+  lastReason: string;
+}
 
 export interface Caption {
   key: number;
@@ -30,6 +45,13 @@ export interface StreamApi {
   committed: Caption[];
   partial: Caption | null;
   serverStatus: StatusMessage | null;
+  /** True while the service's dropped-frame count is still rising. */
+  dropping: boolean;
+  notTranslated: NotTranslated | null;
+  /** The service's summary of the last session that ended with "stop". */
+  summary: SummaryMessage | null;
+  /** Pixel size of the frames being sent (or last sent). */
+  frame: { width: number; height: number } | null;
   clientStats: PumpStats;
   error: string | null;
   /** Resolves true once the socket is open and frames are flowing, false if it could not connect. */
@@ -54,10 +76,17 @@ interface Session {
   stopping: boolean;
   graceTimer: number | null;
   statsTimer: number | null;
+  lastDropped: number;
+  lastServerError: { detail: string; at: number } | null;
 }
 
+/** A close this soon after an "error" message is taken to be caused by it. */
+const ERROR_THEN_CLOSE_MS = 3000;
+/** WebSocket close code the service uses when it refuses a stream ("try again later"). */
+const CLOSE_TRY_LATER = 1013;
+
 export const MESSAGES = {
-  unreachable: `Could not connect to the translation service at ${config.serviceUrl}. Check that it is running, then press start again.`,
+  unreachable: `Could not connect to the translation service at ${config.serviceUrl}. Check that it is running (and that it allows pages from this address), then press start again.`,
   lost: "The connection to the translation service was lost. Captioning has stopped; press start to reconnect.",
 } as const;
 
@@ -74,6 +103,10 @@ export function useStream(events: StreamEvents = {}): StreamApi {
   const [committed, setCommitted] = useState<Caption[]>([]);
   const [partial, setPartial] = useState<Caption | null>(null);
   const [serverStatus, setServerStatus] = useState<StatusMessage | null>(null);
+  const [dropping, setDropping] = useState(false);
+  const [notTranslated, setNotTranslated] = useState<NotTranslated | null>(null);
+  const [summary, setSummary] = useState<SummaryMessage | null>(null);
+  const [frame, setFrame] = useState<{ width: number; height: number } | null>(null);
   const [clientStats, setClientStats] = useState<PumpStats>(ZERO_STATS);
   const [error, setError] = useState<string | null>(null);
   const sessionRef = useRef<Session | null>(null);
@@ -93,6 +126,9 @@ export function useStream(events: StreamEvents = {}): StreamApi {
         setError(null);
         setPartial(null);
         setServerStatus(null);
+        setDropping(false);
+        setNotTranslated(null);
+        setSummary(null);
         setClientStats(ZERO_STATS);
         setPhase("connecting");
 
@@ -107,7 +143,16 @@ export function useStream(events: StreamEvents = {}): StreamApi {
           return;
         }
         ws.binaryType = "arraybuffer";
-        const session: Session = { ws, pump: null, opened: false, stopping: false, graceTimer: null, statsTimer: null };
+        const session: Session = {
+          ws,
+          pump: null,
+          opened: false,
+          stopping: false,
+          graceTimer: null,
+          statsTimer: null,
+          lastDropped: 0,
+          lastServerError: null,
+        };
         sessionRef.current = session;
 
         ws.onopen = () => {
@@ -117,6 +162,7 @@ export function useStream(events: StreamEvents = {}): StreamApi {
             return;
           }
           const size = frameSize(source.video, config.maxFrameWidth);
+          setFrame(size);
           const hello: StartMessage = { type: "start", width: size.width, height: size.height, client_fps: config.sendFps };
           ws.send(JSON.stringify(hello));
           const pump = new FramePump({
@@ -145,8 +191,19 @@ export function useStream(events: StreamEvents = {}): StreamApi {
           if (!message) return;
           if (message.type === "status") {
             setServerStatus(message);
+            const dropped = message.frames_dropped ?? 0;
+            setDropping(dropped > session.lastDropped);
+            session.lastDropped = dropped;
           } else if (message.type === "error") {
+            session.lastServerError = { detail: message.detail, at: performance.now() };
             setError(`The translation service reported a problem: ${message.detail}`);
+          } else if (message.type === "dropped") {
+            // A stretch the service did not translate. The stream goes on.
+            const reason = message.reason;
+            setPartial((p) => (p && p.segmentId === message.segment_id ? null : p));
+            setNotTranslated((prev) => ({ count: (prev?.count ?? 0) + 1, lastReason: reason }));
+          } else if (message.type === "summary") {
+            setSummary(message);
           } else if (message.type === "partial") {
             // Display-only text for the open segment; replaced by every later partial.
             setPartial({ key: -1, segmentId: message.segment_id, text: message.text });
@@ -164,17 +221,28 @@ export function useStream(events: StreamEvents = {}): StreamApi {
           }
         };
 
-        ws.onclose = () => {
+        ws.onclose = (event: CloseEvent) => {
           teardown(session);
           if (sessionRef.current === session) sessionRef.current = null;
           if (session.pump) setClientStats(session.pump.stats());
           setPartial(null);
           setServerStatus(null);
+          setDropping(false);
           setPhase("idle");
           let reason: EndReason = "stopped";
           if (!session.stopping) {
-            reason = session.opened ? "lost" : "unreachable";
-            setError(session.opened ? MESSAGES.lost : MESSAGES.unreachable);
+            const said = session.lastServerError;
+            if (!session.opened) {
+              reason = "unreachable";
+              setError(MESSAGES.unreachable);
+            } else if (said && (event.code === CLOSE_TRY_LATER || performance.now() - said.at < ERROR_THEN_CLOSE_MS)) {
+              // The service said why before it closed; keep its words.
+              reason = "refused";
+              setError(`The translation service ended the stream: ${said.detail}`);
+            } else {
+              reason = "lost";
+              setError(MESSAGES.lost);
+            }
           }
           onEnd?.(reason);
           eventsRef.current.onSessionEnd?.(reason);
@@ -193,8 +261,8 @@ export function useStream(events: StreamEvents = {}): StreamApi {
     const ws = session.ws;
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "stop" }));
-      // The service flushes the open segment as a last "final". If it does not close the socket
-      // itself, close after a grace period.
+      // The service finishes the frames it holds, sends the last "final" and a "summary", and
+      // closes the socket itself; that close is what ends the session. The timer is a fallback.
       session.graceTimer = window.setTimeout(() => ws.close(1000), config.stopGraceMs);
     } else if (ws.readyState === WebSocket.CONNECTING) {
       // onopen closes it as soon as the handshake finishes.
@@ -222,5 +290,19 @@ export function useStream(events: StreamEvents = {}): StreamApi {
     [],
   );
 
-  return { phase, committed, partial, serverStatus, clientStats, error, start, stop, clearCaptions };
+  return {
+    phase,
+    committed,
+    partial,
+    serverStatus,
+    dropping,
+    notTranslated,
+    summary,
+    frame,
+    clientStats,
+    error,
+    start,
+    stop,
+    clearCaptions,
+  };
 }

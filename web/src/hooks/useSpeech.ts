@@ -69,6 +69,8 @@ export interface SpeechApi {
   sentenceCommitted: (text: string) => void;
   /** Stop speaking, empty the queue, and stay silent until the next session starts. */
   silence: () => void;
+  /** Stop speaking and empty the queue; sentences committed after this are still read. */
+  interrupt: () => void;
   /** Speak one sentence now because the user pressed its button (works with read-aloud off). */
   speakOne: (text: string) => void;
 }
@@ -159,6 +161,10 @@ export function useSpeech(): SpeechApi {
     queueRef.current?.cancel();
   }, []);
 
+  const interrupt = useCallback(() => {
+    queueRef.current?.cancel();
+  }, []);
+
   const speakOne = useCallback((text: string) => {
     queueRef.current?.speakNow(text);
   }, []);
@@ -182,6 +188,7 @@ export function useSpeech(): SpeechApi {
     sessionStarted,
     sentenceCommitted,
     silence,
+    interrupt,
     speakOne,
   };
 }

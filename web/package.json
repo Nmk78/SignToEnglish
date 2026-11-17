@@ -13,7 +13,9 @@
     "typecheck": "npm run gen && NEXT_TELEMETRY_DISABLED=1 next typegen && tsc --noEmit",
     "fake-server": "node dev/fake-server.mjs",
     "test:media": "node scripts/make-test-media.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:real": "playwright test -c playwright.real.config.ts",
+    "test:real:soak": "S2E_SOAK=1 playwright test -c playwright.real.config.ts"
   },
   "dependencies": {
     "next": "16.4.6",

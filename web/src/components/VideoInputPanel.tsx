@@ -3,7 +3,13 @@
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import type { StreamApi } from "@/hooks/useStream";
 import { config } from "@/lib/config";
-import { type TranslateResponse, detailText, formatMediaTime, parseTranslateResponse } from "@/lib/protocol";
+import {
+  type TranslateResponse,
+  detailText,
+  dropReasonText,
+  formatMediaTime,
+  parseTranslateResponse,
+} from "@/lib/protocol";
 
 type UploadState =
   | { kind: "idle" }
@@ -160,7 +166,9 @@ export function VideoInputPanel({ stream, onUserStop, onSpeak }: VideoInputPanel
           <div className="segments" data-testid="translate-result">
             <p className="result-label">SENTENCES IN THIS FILE</p>
             {upload.result.segments.length === 0 ? (
-              <p className="segments-empty">No sentence was found in this video.</p>
+              <p className="segments-empty" data-testid="translate-empty">
+                No sentence was found in this video.
+              </p>
             ) : (
               <ol>
                 {upload.result.segments.map((segment, index) => (
@@ -178,7 +186,24 @@ export function VideoInputPanel({ stream, onUserStop, onSpeak }: VideoInputPanel
                 ))}
               </ol>
             )}
-            {upload.result.model && <p className="segments-meta">Model: {upload.result.model}</p>}
+            {upload.result.skipped.length > 0 && (
+              <ul className="segments-skipped" data-testid="translate-skipped">
+                {upload.result.skipped.map((stretch, index) => (
+                  <li key={index}>
+                    {stretch.start_ms !== null && stretch.end_ms !== null
+                      ? `${formatMediaTime(stretch.start_ms)} – ${formatMediaTime(stretch.end_ms)}`
+                      : "A stretch"}{" "}
+                    was not translated because {dropReasonText(stretch.reason)}.
+                  </li>
+                ))}
+              </ul>
+            )}
+            {upload.result.model && (
+              <p className="segments-meta" data-testid="translate-model">
+                Model: {upload.result.model}
+                {upload.result.boundary ? ` · sentence ends: ${upload.result.boundary.replace(/_/g, " ")}` : ""}
+              </p>
+            )}
             {Object.keys(upload.result.timings).length > 0 && (
               <p className="segments-meta">
                 {Object.entries(upload.result.timings)

@@ -6,13 +6,14 @@ export const CLIP_FILE = resolve(__dirname, "..", "media", "clip.webm");
 export const BAD_FILE = resolve(__dirname, "..", "media", "not-a-video.txt");
 export const CLIP_MS = 6000;
 /** Must match the default in src/lib/config.ts; the test build does not override it. */
-export const SEND_FPS = 15;
+export const SEND_FPS = 10;
 
 export interface FakeSession {
   id: number;
   start: { type: string; width: number; height: number; client_fps: number } | null;
   frames: number;
   bad_frames: number;
+  wrong_size_frames: number;
   non_increasing_timestamps: number;
   first_ts_ms: number | null;
   last_ts_ms: number | null;

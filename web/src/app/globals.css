@@ -113,6 +113,9 @@ main { max-width: 1240px; margin: auto; padding: 0 34px; }
 .caption-partial { margin: 14px 0 0; padding-left: 12px; border-left: 3px dashed rgba(20, 93, 71, .45); font-family: Georgia, serif; font-style: italic; color: #6f857c; font-size: 24px; line-height: 1.2; }
 .caption-partial-tag { display: block; margin-top: 5px; font-family: Arial, Helvetica, sans-serif; font-style: normal; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; font-weight: 700; color: #8a9c94; }
 
+.caption-finishing { margin: 14px 0 0; font-size: 12px; font-weight: 700; color: var(--green); }
+.segments-skipped { margin: 12px 0 0; padding-left: 18px; font-size: 12px; line-height: 1.5; color: #614626; }
+
 .domain-panel { margin: 18px 0 48px; }
 .domain-intro { max-width: 760px; color: #52615b; font-size: 14px; line-height: 1.6; margin: 12px 0 20px; }
 .domain-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 18px; }

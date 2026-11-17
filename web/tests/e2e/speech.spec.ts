@@ -18,81 +18,7 @@
 // messages arrive, and when.
 import { type APIRequestContext, type Page, expect, test } from "@playwright/test";
 import { CLIP_FILE, FAKE, resetFake } from "./helpers";
-
-interface SpokenEntry {
-  text: string;
-  voiceUri: string | null;
-  voiceName: string | null;
-  localService: boolean | null;
-  lang: string;
-  rate: number;
-  calledAt: number;
-  events: { type: string; at: number; error?: string }[];
-}
-interface SpeechLog {
-  spoken: SpokenEntry[];
-  cancels: number;
-  finalsReceived: { text: string; at: number }[];
-}
-
-/** Test-side instrumentation; see the note at the top of this file. */
-async function instrumentSpeech(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const log: SpeechLog = { spoken: [], cancels: 0, finalsReceived: [] };
-    (window as unknown as { __speechLog: SpeechLog }).__speechLog = log;
-    const synth = window.speechSynthesis;
-    const realSpeak = synth.speak.bind(synth);
-    const realCancel = synth.cancel.bind(synth);
-    synth.speak = (utterance: SpeechSynthesisUtterance) => {
-      const entry: SpokenEntry = {
-        text: utterance.text,
-        voiceUri: utterance.voice?.voiceURI ?? null,
-        voiceName: utterance.voice?.name ?? null,
-        localService: utterance.voice?.localService ?? null,
-        lang: utterance.lang,
-        rate: utterance.rate,
-        calledAt: performance.now(),
-        events: [],
-      };
-      log.spoken.push(entry);
-      for (const type of ["start", "end", "error"] as const) {
-        utterance.addEventListener(type, (event) => {
-          const error = (event as SpeechSynthesisErrorEvent).error;
-          entry.events.push({ type, at: performance.now(), ...(error ? { error } : {}) });
-        });
-      }
-      realSpeak(utterance);
-    };
-    synth.cancel = () => {
-      log.cancels += 1;
-      realCancel();
-    };
-    // Also note when each "final" message reaches the page, to measure the delay to speech.
-    const RealWebSocket = window.WebSocket;
-    window.WebSocket = class extends RealWebSocket {
-      constructor(url: string | URL, protocols?: string | string[]) {
-        super(url, protocols);
-        this.addEventListener("message", (event: MessageEvent) => {
-          if (typeof event.data !== "string") return;
-          try {
-            const message = JSON.parse(event.data) as { type?: string; text?: string };
-            if (message.type === "final") log.finalsReceived.push({ text: message.text ?? "", at: performance.now() });
-          } catch {
-            // not JSON; nothing to note
-          }
-        });
-      }
-    };
-  });
-}
-
-async function speechLog(page: Page): Promise<SpeechLog> {
-  return page.evaluate(() => (window as unknown as { __speechLog: SpeechLog }).__speechLog);
-}
-
-async function isSpeaking(page: Page): Promise<boolean> {
-  return page.evaluate(() => window.speechSynthesis.speaking);
-}
+import { type SpokenEntry, instrumentSpeech, isSpeaking, speechLog } from "./speech-instrument";
 
 async function send(request: APIRequestContext, messages: object[]): Promise<void> {
   const response = await request.post(`${FAKE}/__dev/send`, { data: { messages } });
@@ -245,6 +171,22 @@ test("pressing Stop cancels speech and empties the queue", async ({ page, reques
   expect(eventTypes(log.spoken[0]!)).not.toContain("end");
   // Both sentences are still in the captions.
   await expect(page.getByTestId("caption-final")).toHaveCount(2);
+});
+
+test("the sentence the service commits after Stop is still read aloud", async ({ page, request }) => {
+  // Automatic captions: on "stop" the fake server, like the real one, sends the open sentence as
+  // a last final, then a summary, then closes.
+  await request.post(`${FAKE}/__dev/captions`, { data: { mode: "auto" } });
+  await page.goto("/");
+  await startCamera(page);
+  await expect(page.getByTestId("caption-partial")).toBeVisible();
+  expect((await speechLog(page)).spoken).toHaveLength(0);
+  await page.getByTestId("camera-stop").click();
+  await expect(page.getByTestId("stream-phase")).toHaveText("Idle");
+  await expect(page.getByTestId("caption-final")).toHaveText(["[canned] Hello, how are you?"]);
+  await expect.poll(async () => eventTypes((await speechLog(page)).spoken[0] ?? ({ events: [] } as unknown as SpokenEntry)), { timeout: 20_000 }).toEqual(["start", "end"]);
+  const log = await speechLog(page);
+  expect(log.spoken.map((s) => s.text)).toEqual(["[canned] Hello, how are you?"]);
 });
 
 test("a dropped connection cancels speech and empties the queue", async ({ page, request }) => {

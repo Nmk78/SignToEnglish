@@ -44,6 +44,17 @@ test("translate file: a file the service rejects shows the service's reason", as
   await expect(page.getByTestId("translate-result")).toHaveCount(0);
 });
 
+test("translate file: an empty result says why nothing was translated", async ({ page, request }) => {
+  await request.post("http://127.0.0.1:8787/__dev/set", { data: { translate: "empty" } });
+  await page.goto("/");
+  await page.getByTestId("mode-file").click();
+  await page.getByTestId("file-input").setInputFiles(CLIP_FILE);
+  await page.getByTestId("translate-file").click();
+  await expect(page.getByTestId("translate-empty")).toContainText("No sentence was found");
+  await expect(page.getByTestId("translate-skipped")).toContainText("0:00.0 – 0:06.0 was not translated because no signing was seen");
+  await expect(page.getByTestId("translate-model")).toContainText("FAKE-DEV-SERVER · not adapted · none · sentence ends: fixed length");
+});
+
 test("play as live: the file plays in the page and its frames are streamed with media timestamps", async ({ page, request }) => {
   await page.goto("/");
   await page.getByTestId("mode-file").click();
@@ -74,7 +85,7 @@ test("play as live: the file plays in the page and its frames are streamed with 
   expect(s.first_ts_ms).toBeLessThan(200);
   expect(s.last_ts_ms).toBeGreaterThan(CLIP_MS - 500);
   expect(s.last_ts_ms).toBeLessThanOrEqual(CLIP_MS);
-  // The whole 6 s file was sent at the configured rate (90 frames at 15 fps).
+  // The whole 6 s file was sent at the configured rate (60 frames at 10 fps).
   const expectedFrames = (CLIP_MS / 1000) * SEND_FPS;
   const fps = stampedFps(s);
   console.log(`[measured] play as live: ${s.frames} frames (expected ${expectedFrames}), ${fps.toFixed(2)} fps by media timestamps, first ${s.first_ts_ms} ms, last ${s.last_ts_ms} ms`);

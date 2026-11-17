@@ -8,7 +8,7 @@ const PHASE_TEXT: Record<StreamApi["phase"], string> = {
   idle: "Idle",
   connecting: "Connecting…",
   streaming: "Streaming",
-  stopping: "Finishing…",
+  stopping: "Finishing the last sentence…",
 };
 
 function serviceText(health: HealthState): { label: string; tone: "good" | "bad" | "wait"; detail: string | null } {
@@ -36,6 +36,10 @@ export function StatusBar({ health, stream }: { health: HealthState; stream: Str
   const status = stream.serverStatus;
   const stats = stream.clientStats;
   const skipped = stats.skippedBusy + stats.skippedBackpressure;
+  const dropped = status?.frames_dropped ?? null;
+  const received = status?.frames_received ?? null;
+  const frame = stream.frame;
+  const last = stream.summary;
 
   return (
     <section className="statusbar" aria-label="Status">
@@ -50,6 +54,11 @@ export function StatusBar({ health, stream }: { health: HealthState; stream: Str
       {stream.phase !== "idle" && status && (
         <span className={`chip ${status.signing ? "good" : "plain"}`} data-testid="signing-indicator">
           {status.signing ? "Signing detected" : "Hands at rest"}
+        </span>
+      )}
+      {stream.dropping && (
+        <span className="chip bad" role="status" data-testid="dropping-hint">
+          The service cannot keep up and is dropping frames. Close other applications, or lower the send rate.
         </span>
       )}
       <dl className="stats">
@@ -72,6 +81,13 @@ export function StatusBar({ health, stream }: { health: HealthState; stream: Str
           <dd>{fmt(status?.fps_in ?? null, 1)} fps</dd>
         </div>
         <div>
+          <dt>Dropped by service</dt>
+          <dd data-testid="frames-dropped">
+            {dropped === null ? "–" : dropped}
+            {dropped !== null && received ? ` (${((100 * dropped) / received).toFixed(1)}%)` : ""}
+          </dd>
+        </div>
+        <div>
           <dt>Queue</dt>
           <dd>{fmt(status?.queue_depth ?? null, 0)}</dd>
         </div>
@@ -79,10 +95,19 @@ export function StatusBar({ health, stream }: { health: HealthState; stream: Str
           <dt>Real-time factor</dt>
           <dd>{fmt(status?.rtf ?? null, 2)}</dd>
         </div>
-        {info?.checkpoint_id && (
+        <div>
+          <dt>Frames as sent</dt>
+          <dd data-testid="send-settings">
+            {frame ? `${frame.width}×${frame.height} · ` : ""}JPEG quality {config.jpegQuality.toFixed(2)} ·{" "}
+            {config.sendFps} fps
+          </dd>
+        </div>
+        {(info?.checkpoint || info?.checkpoint_id) && (
           <div>
             <dt>Checkpoint</dt>
-            <dd data-testid="checkpoint-id">{info.checkpoint_id}</dd>
+            <dd data-testid="checkpoint-id">
+              {[info.checkpoint, info.checkpoint_id].filter(Boolean).join(" · ")}
+            </dd>
           </div>
         )}
         {info?.device && (
@@ -95,6 +120,15 @@ export function StatusBar({ health, stream }: { health: HealthState; stream: Str
           <div>
             <dt>Preprocessing</dt>
             <dd>{info.preprocessing_hash}</dd>
+          </div>
+        )}
+        {stream.phase === "idle" && last && (
+          <div>
+            <dt>Last session</dt>
+            <dd data-testid="last-session">
+              {last.frames_received ?? "–"} frames received, {last.frames_dropped ?? "–"} dropped
+              {last.complete === false ? " · the service stopped waiting before everything was translated" : ""}
+            </dd>
           </div>
         )}
       </dl>

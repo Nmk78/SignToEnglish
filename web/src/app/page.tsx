@@ -19,8 +19,9 @@ export default function Home() {
     onSessionStart: speech.sessionStarted,
     // Only committed sentences are read aloud.
     onFinal: speech.sentenceCommitted,
-    // A lost connection silences speech. A normal end does not: when a "play as live" file runs
-    // out, its last sentences are still read. Pressing Stop silences speech through onUserStop.
+    // A lost connection silences speech. A normal end does not: the service sends the last
+    // sentence after "stop", and that sentence is still read. Pressing Stop cuts off whatever was
+    // being read or waiting at that moment (onUserStop), then the last sentence is read.
     onSessionEnd: (reason) => {
       if (reason !== "stopped") speech.silence();
     },
@@ -76,11 +77,11 @@ export default function Home() {
             </div>
           </div>
           {mode === "camera" ? (
-            <CameraView stream={stream} onUserStop={speech.silence} />
+            <CameraView stream={stream} onUserStop={speech.interrupt} />
           ) : (
             <VideoInputPanel
               stream={stream}
-              onUserStop={speech.silence}
+              onUserStop={speech.interrupt}
               onSpeak={speech.availability === "ready" ? speech.speakOne : undefined}
             />
           )}
@@ -92,6 +93,8 @@ export default function Home() {
           active={busy}
           onClear={stream.clearCaptions}
           spokenAloud={speech.active}
+          notTranslated={stream.notTranslated}
+          finishing={stream.phase === "stopping"}
           controls={<SpeechOutput speech={speech} />}
         />
       </section>
