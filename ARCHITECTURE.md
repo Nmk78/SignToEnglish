@@ -271,7 +271,7 @@ Real timestamps are used everywhere; no code assumes a frame rate.
 
 ### 6.4 Web app (`web/`)
 
-Components: `CameraView` (permission, preview, framing guide, frame grabbing), `useStream` (socket lifecycle, timestamps, back-pressure), `Captions` (committed text plus a visually distinct partial line), `DomainPanel` (what the demo covers, with example sentences), `VideoInputPanel` (choose a video file, then either "translate file" through `POST /translate`, or "play as live", which plays the video in the page and sends its frames with their media timestamps over `WS /stream` exactly as the webcam path does; also the backup path at the show), `StatusBar`. No model code in the browser.
+Components: `CameraView` (permission, preview, framing guide, frame grabbing), `useStream` (socket lifecycle, timestamps, back-pressure), `Captions` (committed text plus a visually distinct partial line), `DomainPanel` (what the demo covers, with example sentences), `VideoInputPanel` (choose a video file, then either "translate file" through `POST /translate`, or "play as live", which plays the video in the page and sends its frames with their media timestamps over `WS /stream` exactly as the webcam path does; also the backup path at the show), `StatusBar`, `SpeechOutput` (reads each committed sentence aloud with the browser's built-in speech synthesis, using a local system voice only so that it works offline and sends no text anywhere; never speaks partial text; queues sentences and skips ahead when it falls behind; has an on/off control and a voice and rate choice; captions stay visible; added by user decision on 2026-11-17). No model code in the browser.
 
 ## 7. Evaluation
 

@@ -48,6 +48,15 @@ MUST_NOT_BE_IGNORED = [
 
 
 def _ignored(repo_root: Path, path: str) -> bool:
+    # In a worktree a git-ignored folder (assets/, third_party/, the fixture clips) may be a
+    # symlink to the main checkout's copy. Git cannot look "beyond a symbolic link", so in
+    # that case the question becomes whether the link itself is ignored.
+    parts = Path(path).parts
+    for depth in range(1, len(parts)):
+        prefix = Path(*parts[:depth])
+        if (repo_root / prefix).is_symlink():
+            path = prefix.as_posix()
+            break
     result = subprocess.run(
         ["git", "check-ignore", "--no-index", "-q", path], cwd=repo_root, check=False
     )
