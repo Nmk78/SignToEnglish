@@ -332,6 +332,10 @@ Measured on this machine (Apple M5, 16 GB, macOS 27.0.1; `torch` 2.15.0, `transf
 | The prompt tokenizes to `[89349, 11329, 17896, 1552, 288, 5413, 267, 1]` with `transformers` 5.23.0, and to the same first seven ids with `sentencepiece` 0.2.3 run directly on `spiece.model` | local run | measured. Equality with `transformers` 4.40.0 is inferred from that, not run |
 | Both detector files have suppression built in; ONNX Runtime's CoreML provider cannot run them (shape error in the suppression output) but runs both pose models | local run | measured |
 | The remaining three `.onnx` files' sizes and SHA-256 values in "Approved assets" | local extraction and hashing | measured |
+| On the two fixture clips (150 frames, 1280×720, 30 fps each): text from both checkpoints; identical output on CPU and MPS in 12 of 12 cases; extraction 20.1–24.0 fps (lightweight, CPU), 41.4–47.2 (lightweight, pose model on CoreML), 5.5–8.5 (performance); translation 0.54–1.29 s on MPS and 0.78–4.21 s on CPU | `scratch/spike_pose.py`, `scratch/spike_e2e.py` | measured |
+| The performance pose model's scores run from 0.42 to 9.78 on the clips and never fall to 0.3; the lightweight model's run from 0.06 to 1.10. The base model's 0.3 rule masks nothing with the performance model | `scratch/analyze_clips.py` | measured |
+| `hands_visible` shows both hands above the 0.3 rule in 88 of 150 frames (59%); framing is head and shoulders (shoulders at 90% of frame height). `hands_leave` has both hands in view for frames 0–89 and lowered after; the lowered right hand still scores about 0.32 and is not masked | `scratch/analyze_clips.py` | measured; the description of what the signer did is inferred from keypoints, not from looking at frames |
+| CoreML and CPU give different keypoints for the same frames (median 0 px, up to about 1,000 px on single low-confidence points; 28 and 52 of 19,950 points change sides of the 0.3 rule) | `scratch/analyze_clips.py` | measured |
 
 ### Datasets
 
