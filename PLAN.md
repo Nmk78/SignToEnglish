@@ -41,15 +41,15 @@ What the demo will and will not be: inside the recorded domain, with the demo si
 
 ## 4. Compute on this Mac
 
-All figures are **[assumed]** until Step 0.3 and Step 2.4 measure them.
+Rows marked **measured** were measured in Step 0.3 on 2026-11-17 on this Mac (Apple M5, 16 GB, 32-bit floats; torch 2.15.0, onnxruntime 1.32.0, rtmlib 0.0.16) on the two 150-frame, 1280×720 fixture clips; details in `docs/feasibility.md`. The remaining figures are **[assumed]** until Steps 2.2 and 2.4 measure them.
 
 | Job | Estimate | Measured in |
 | --- | --- | --- |
-| RTMPose whole-body extraction, lightweight mode | 10–25 frames per second | Step 0.3 |
-| Translating one sentence (encode plus mT5-Base beam search) | 0.5–2 s | Step 0.3 |
-| Extracting the domain recordings (about 1.5 hours of video) | 0.5–2 h | Step 2.2 |
+| RTMPose whole-body extraction, lightweight mode | **measured:** 20.1–24.0 frames per second on CPU; 41.4–47.2 with the pose model on CoreML (detector on CPU). Performance mode: 5.5–8.5, below target, and its scores do not fit the base model's 0.3 rule | Step 0.3 |
+| Translating one sentence (encode plus mT5-Base beam search, 4 beams, 150 frames) | **measured:** 0.54–1.29 s on MPS; 0.78–4.21 s on CPU, varying run to run. Model load 15–16 s; peak memory 4.6–6.4 GB | Step 0.3 |
+| Extracting the domain recordings (about 1.5 hours of video) | about 2.3 h on CPU, about 1.1 h with CoreML [inferred from the Step 0.3 rates] | Step 2.2 |
 | Fine-tuning with adapters on about 500 clips | 0.5–3 h per run | Step 2.4 |
-| Disk | Under 15 GB: weights about 4 GB, recordings about 5 GB, caches under 1 GB | — |
+| Disk | Under 15 GB: weights and pose files 3.1 GB (**measured**; the separate mT5 weight file is not needed), recordings about 5 GB, caches under 1 GB | — |
 
 Memory is the main risk: mT5-Base has 582 M parameters [verified], about 2.3 GB in 32-bit floats [inferred]. Inference fits. Full fine-tuning may not fit in 16 GB alongside the system, so the plan uses adapters with the base weights frozen and measures peak memory in Step 2.4. [assumed]
 
@@ -202,7 +202,7 @@ Steps can be run by several sessions in parallel. `WORKERS.md` defines the track
 | Risk | Effect | Handling |
 | --- | --- | --- |
 | The signer is learning ASL for this project (Q10, decided) | Signing may be non-standard or inconsistent; the pretrained model helps less; memorizing the list is more likely | Small domain; ASL versions from a reliable source; fluent review if possible; record only once signing is consistent; the unseen-sentence test reports what happened; the demo is described as tuned to one learner |
-| Uni-Sign will not run acceptably on this Mac [not verified] | Base model changes | Step 0.3 is a decision gate before anything else is built; fallback in Q2 |
+| Uni-Sign will not run acceptably on this Mac | Base model changes | **Resolved in Step 0.3 (2026-11-17):** it runs in 32-bit floats with lightweight pose models and translation on MPS. CPU-only translation is borderline against the 3 s target |
 | The Uni-Sign code has no license [verified] | Using it rests on the authors' evident intent, not a grant | Q3; keep the code out of this repo, do not redistribute, optionally ask the authors |
 | Fine-tuning does not fit in 16 GB [assumed] | Slower or smaller adaptation | Adapters with frozen base; measured in Step 2.4; smaller batch with accumulation |
 | The adapted model memorizes sentences instead of translating | Demo works only on the exact list | The unseen-sentence test measures this; reported either way |
