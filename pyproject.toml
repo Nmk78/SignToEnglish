@@ -63,6 +63,9 @@ required-version = "==0.13.8"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --import-mode=importlib"
 filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]
+markers = [
+    "model: loads the translation model (slow, several GB of memory); excluded from `make check`, included in `make check-full`",
+]
 
 [tool.ruff]
 line-length = 100
