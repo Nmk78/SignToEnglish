@@ -240,17 +240,17 @@ All three numbers are estimates with no published anchor. If the measured result
 
 Step 0.2 (2026-11-16) filled in the licenses, sizes, sources, and hashes below and put rows A1 to A7 to the user, who approved all seven on 2026-11-16 ("yes to all", relayed by the orchestrator), exactly as worded: these files, sources, and revisions, and this sparse-checkout path list. A8 was not asked and is not approved. No approved row, no download. License details and obligations are in `docs/DATA_LICENSES.md`.
 
-Sizes and hashes were read from the hosts' metadata on 2026-11-16 [verified as reported by the host]. Each hash is checked again after download and the loader refuses a mismatch. The "On disk" column says what is present and checked as of the end of Step 0.2; files live under the git-ignored `assets/` and `third_party/` of the Track A worktree (`/Users/naymyokhant/Programming/Personal/Projects/s2e-a`). Other worktrees reach them by setting `S2E_ASSETS_ROOT` and `S2E_THIRD_PARTY_ROOT`, or the folders can be moved into the main checkout. The outstanding files are fetched by `scratch/download_large_assets.sh` (git-ignored, resumable, checks size and SHA-256), which the user runs because the downloads are expected to exceed 10 minutes.
+Sizes and hashes were read from the hosts' metadata on 2026-11-16 [verified as reported by the host]. Each hash is checked again after download and the loader refuses a mismatch. The "On disk" table says what is present and checked; files live under the git-ignored `assets/` and `third_party/` of the Track A worktree (`/Users/naymyokhant/Programming/Personal/Projects/s2e-a`). Other worktrees reach them by setting `S2E_ASSETS_ROOT` and `S2E_THIRD_PARTY_ROOT`, or the folders can be moved into the main checkout. The large files were fetched by `scratch/download_large_assets.sh` (git-ignored, resumable, checks size and SHA-256), which the user ran on 2026-11-17.
 
-| # | On disk (end of Step 0.2) |
+| # | On disk (checked 2026-11-17, Step 0.3) |
 | --- | --- |
-| A1 | **Not yet.** `assets/unisign/openasl_pose_only_slt.pth`, by the script |
-| A2 | **Not yet.** `assets/unisign/how2sign_pose_only_slt.pth`, by the script |
+| A1 | Yes. `assets/unisign/openasl_pose_only_slt.pth`, 1,186,924,838 bytes, SHA-256 re-computed on 2026-11-17 and equal to the hub value |
+| A2 | Yes. `assets/unisign/how2sign_pose_only_slt.pth`, 1,186,925,007 bytes, SHA-256 re-computed on 2026-11-17 and equal to the hub value |
 | A3 | Yes. `third_party/Uni-Sign/`, HEAD `eed438bcb49e30405cd6ccdfcccca330c134e830`, 59 files, 366,792 bytes, fetched as a blob-filtered sparse clone so excluded files were never transferred. It includes three stale `.pyc` files and a `.DS_Store` under `stgcn_layers/` that the repository tracks; they are not used |
 | A4 | Yes. `assets/mt5-base/`. SHA-256: `spiece.model` (4,309,802 bytes) `ef78f86560d809067d12bac6c09f19a462cb3af3f54d2b8acbba26e1433125d6`; `config.json` `7ce360bdccf5b665dbb8c32f6912f1d8fd394aa553c133863283a16503d6d550`; `generation_config.json` `f5a1c7e2be8092018d8835128987edf0111637dd98e90599cc80310fef75d95a`; `tokenizer_config.json` `3be4bbd24c65845b1dc86186f3c7d1d61ac2e29154cb0d71133753562f8d1959`; `special_tokens_map.json` `09059cedc26bc46bc09a52f05b92d4922e11917e87f3b92059bb1a63a59ab2c4`. The host reports no hash for these small files, so these are the values as downloaded |
-| A5 | **Not yet.** `assets/mt5-base/pytorch_model.bin`, by the script |
-| A6 | **Half.** Detector: yes, `assets/rtmlib/lightweight/yolox_tiny/`; archive SHA-256 matches the mirror-reported value; extracted `yolox_tiny_8xb8-300e_humanart-6f3252f9.onnx` is 20,283,006 bytes, SHA-256 `ceb11c07298f95c50d7c5abeb906d03340c85f23aa79e3e66966e7fb6c307250`. Pose model: **not yet**, 19.9 MB of 120.0 MB is on disk as a partial file that must not be used; the script resumes it. Its `.onnx` is extracted and hashed at the start of Step 0.3 |
-| A7 | **Not yet.** Both archives by the script, into `assets/rtmlib/performance/`. Mirror-reported archive SHA-256: `a000224fd8ba283202bc62d4a5fcdfe353adb9f468777dbac1ea2ada2093adde` (`yolox_m`) and `a87e1af41a0a067776dba7d46e1c21c8f6e9f18e247e0e606718dd1f31e96ffd` (`rtmw-dw-x-l`) |
+| A5 | **Not downloaded, by the user's choice (2026-11-17).** Not needed: Step 0.3 builds mT5 from `config.json` and showed that each checkpoint supplies every mT5 tensor (`docs/feasibility.md`, section 2). If it is ever wanted, the approval stands and `WITH_MT5=1` on the download script fetches it |
+| A6 | Yes. Detector: `assets/rtmlib/lightweight/yolox_tiny/yolox_tiny_8xb8-300e_humanart-6f3252f9.onnx`, 20,283,006 bytes, SHA-256 `ceb11c07298f95c50d7c5abeb906d03340c85f23aa79e3e66966e7fb6c307250`. Pose model: `assets/rtmlib/lightweight/rtmw_l_m/rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.onnx`, 128,976,616 bytes, SHA-256 `68db326c5c6f3273456f803eae0faf5440478369f2c3ee67258d2f36512e8d76`. Both archives match the mirror-reported SHA-256 |
+| A7 | Yes. Detector: `assets/rtmlib/performance/yolox_m/yolox_m_8xb8-300e_humanart-c2c7a14a.onnx`, 101,400,344 bytes, SHA-256 `3dea6513388889f0fff4b77bf7a26013600321b9eb9ceb0e9a400a82572f5f23`. Pose model: `assets/rtmlib/performance/rtmw_x_l/rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.onnx`, 229,320,930 bytes, SHA-256 `bd033156e5104c4f5d2edfe0453e02661e30a2f3da453ec93c8764d561b83054`. Both archives match the mirror-reported SHA-256 (`a000224f…adde`, `a87e1af4…6ffd`) |
 
 | # | Asset | Purpose | License (URL, date read) | Size | Source and pin | Approved by user (date) |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -263,7 +263,7 @@ Sizes and hashes were read from the hosts' metadata on 2026-11-16 [verified as r
 | A7 | Pose model files, `rtmlib` "performance" mode: `yolox_m_8xb8-300e_humanart-c2c7a14a.zip` and `rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.zip` | Optional. Lets Step 0.3 compare against the larger estimator, because which estimator produced the training keypoints is not settled (`docs/base_model_notes.md`, section 2.1) | as A6 | 94,223,081 and 213,433,855 bytes (308 MB together) | https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/yolox_m_8xb8-300e_humanart-c2c7a14a.zip and https://download.openmmlab.com/mmpose/v1/projects/rtmw/onnx_sdk/rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.zip. Hashes recorded after download. | approved by user 2026-11-16 |
 | A8 | How2Sign keypoints from the Uni-Sign hub repository (`how2sign_pose_format.zip.00` to `.03`; all splits in one archive) and How2Sign test references | Reproduction check in Step 2.1 | Hub card CC BY-NC 4.0; derived from How2Sign, CC BY-NC 4.0 | 8,465,474,575 bytes (8.46 GB) for the keypoints | https://huggingface.co/ZechengLi19/Uni-Sign | **not requested in Step 0.2**; this is Step 2.1's stop point. Note that it is 8.46 GB, not a test-split-only file. |
 
-Total for A1 to A7: about 5.16 GB, of which about 0.04 GB was on disk at the end of Step 0.2.
+On disk on 2026-11-17: A1 to A4, A6, and A7, about 3.1 GB including the archives and extracted files. A5 (2.33 GB) was not downloaded.
 
 ## Candidate dependency versions
 
@@ -320,6 +320,18 @@ Read directly with `curl` from the hosts' raw-file and metadata endpoints; nothi
 | Download rate on this network, 2026-11-16 23:13 to 23:27: 440 to 480 kB/s on three files (4.3 MB, 18.9 MB, and the first minutes of 120 MB), then 27 to 46 kB/s for several minutes with dropped connections | `curl` transfer statistics | measured |
 
 User decisions recorded in Step 0.2 (2026-11-16, relayed by the orchestrator in the user's words "yes to all: A items 1–8"): asset rows A1 to A7 approved; and the helper that loads the Uni-Sign reference code may supply empty placeholder modules for its unused `decord` and `deepspeed` imports.
+
+### Step 0.3 (2026-11-17, Track A)
+
+Measured on this machine (Apple M5, 16 GB, macOS 27.0.1; `torch` 2.15.0, `transformers` 5.23.0, `onnxruntime` 1.32.0, `rtmlib` 0.0.16). Details and numbers are in `docs/feasibility.md`.
+
+| Claim | Source | Status |
+| --- | --- | --- |
+| Both checkpoints hold 627 tensors (583 in bfloat16, 44 integer counters) and no key is missing or unexpected against the model built from `config.json`; after loading, every tensor in the model equals the checkpoint's tensor of the same name, mT5 included (284 mT5 tensors, 582,401,280 mT5 parameters) | `scratch/spike_common.py` on both checkpoints | measured. `google/mt5-base` `pytorch_model.bin` is not needed |
+| `transformers` 5.23.0 forces mT5's output layer to share the embedding tensor, whatever `config.json` says; the checkpoints were trained with the two separate and hold different values for them. Loaded as-is, the embedding is silently overwritten and the model outputs nothing | `transformers/models/mt5/configuration_mt5.py:78-80` in the installed package; `scratch/probe_tying.py` | verified in the source and measured. Worked around by separating the two before loading |
+| The prompt tokenizes to `[89349, 11329, 17896, 1552, 288, 5413, 267, 1]` with `transformers` 5.23.0, and to the same first seven ids with `sentencepiece` 0.2.3 run directly on `spiece.model` | local run | measured. Equality with `transformers` 4.40.0 is inferred from that, not run |
+| Both detector files have suppression built in; ONNX Runtime's CoreML provider cannot run them (shape error in the suppression output) but runs both pose models | local run | measured |
+| The remaining three `.onnx` files' sizes and SHA-256 values in "Approved assets" | local extraction and hashing | measured |
 
 ### Datasets
 
