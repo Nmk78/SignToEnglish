@@ -1,0 +1,21 @@
+# Keypoint extraction settings (validated by signtoenglish.preprocess.schema.KeypointConfig).
+# Every value here changes the extracted keypoints, so every value is part of the
+# preprocessing hash, except `relative_path`, which is only where a file sits under the
+# assets root; the file's SHA-256 is what is hashed.
+#
+# These are the Uni-Sign demo's settings: rtmlib "lightweight" mode (approved assets A6).
+detector:
+  relative_path: rtmlib/lightweight/yolox_tiny/yolox_tiny_8xb8-300e_humanart-6f3252f9.onnx
+  sha256: ceb11c07298f95c50d7c5abeb906d03340c85f23aa79e3e66966e7fb6c307250
+  input_size: [416, 416]   # width, height
+pose:
+  relative_path: rtmlib/lightweight/rtmw_l_m/rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.onnx
+  sha256: 68db326c5c6f3273456f803eae0faf5440478369f2c3ee67258d2f36512e8d76
+  input_size: [192, 256]   # width, height
+# cpu or coreml. The detector always runs on CPU. CoreML is about twice as fast for the pose
+# model but gives slightly different keypoints, so it is a different cache; tests use cpu.
+pose_provider: cpu
+# Frames arriving faster than this are thinned by timestamp before pose estimation.
+# The base model has no frame rate of its own; null keeps every frame.
+model_rate_fps: 30.0
+rate_slack: 0.25
