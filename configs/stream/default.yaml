@@ -1,0 +1,35 @@
+# Streaming engine settings (validated by signtoenglish.infer.streaming.StreamConfig).
+# All times are milliseconds of stream time, taken from the frames' own timestamps.
+# Every value is an [assumed] default until chosen on validation takes (Steps 3.2, 3.3).
+
+# A partial translation of the open segment is requested this often. If the decoder is
+# still busy when a hop comes due, that hop is skipped.
+hop_ms: 1000
+# A segment is cut at this length, or at the base model's maximum of 256 frames if that
+# comes sooner (about 8.5 s at 30 frames per second), and the next one opens at the cut.
+max_segment_ms: 16000
+# A shorter segment is dropped without decoding.
+min_segment_ms: 1000
+# A segment with less than this much signing is dropped without decoding. The base model
+# answers an empty scene with a fluent invented sentence, so this guard is always on.
+min_signing_ms: 500
+# A larger jump between consecutive frame timestamps is a gap: the open segment is closed
+# at the last frame before it.
+max_gap_ms: 500
+# More finished segments than this waiting for the decoder: the oldest is dropped, reported,
+# and counted.
+max_pending_finals: 8
+
+# What counts as "this frame shows signing" unless a boundary detector brings stricter
+# evidence: a hand whose 21 points have a mean pose-estimator score of at least
+# hand_score_min, with at least hand_inside_min of them inside the frame. This is stricter
+# than the base model's 0.3 mask but it is not a rest-position rule (Step 3.2).
+evidence:
+  hand_score_min: 0.5
+  hand_inside_min: 0.8
+
+# Sentence boundaries. fixed_length is the baseline: back-to-back windows that know nothing
+# about sentences. Step 3.2 adds the rest-position detector and makes it the default.
+boundary:
+  kind: fixed_length
+  length_ms: 8000
