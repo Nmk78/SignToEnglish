@@ -39,6 +39,14 @@ export interface StreamApi {
   clearCaptions: () => void;
 }
 
+/** Hook-level callbacks, for things that follow every session (read-aloud). */
+export interface StreamEvents {
+  onSessionStart?: () => void;
+  /** Called once for each committed ("final") sentence. Partial text never reaches it. */
+  onFinal?: (text: string) => void;
+  onSessionEnd?: (reason: EndReason) => void;
+}
+
 interface Session {
   ws: WebSocket;
   pump: FramePump | null;
@@ -61,7 +69,7 @@ function teardown(session: Session): void {
   session.statsTimer = null;
 }
 
-export function useStream(): StreamApi {
+export function useStream(events: StreamEvents = {}): StreamApi {
   const [phase, setPhase] = useState<StreamPhase>("idle");
   const [committed, setCommitted] = useState<Caption[]>([]);
   const [partial, setPartial] = useState<Caption | null>(null);
@@ -70,6 +78,10 @@ export function useStream(): StreamApi {
   const [error, setError] = useState<string | null>(null);
   const sessionRef = useRef<Session | null>(null);
   const keyRef = useRef(0);
+  const eventsRef = useRef<StreamEvents>(events);
+  useEffect(() => {
+    eventsRef.current = events;
+  });
 
   const start = useCallback(
     (source: StreamSource, onEnd?: (reason: EndReason) => void) =>
@@ -124,6 +136,7 @@ export function useStream(): StreamApi {
           pump.start();
           session.statsTimer = window.setInterval(() => setClientStats(pump.stats()), 500);
           setPhase("streaming");
+          eventsRef.current.onSessionStart?.();
           resolve(true);
         };
 
@@ -146,6 +159,7 @@ export function useStream(): StreamApi {
               const caption: Caption = { key: keyRef.current, segmentId, text };
               // Committed text is only ever appended, never edited.
               setCommitted((prev) => [...prev, caption].slice(-config.maxCommittedCaptions));
+              eventsRef.current.onFinal?.(text);
             }
           }
         };
@@ -163,6 +177,7 @@ export function useStream(): StreamApi {
             setError(session.opened ? MESSAGES.lost : MESSAGES.unreachable);
           }
           onEnd?.(reason);
+          eventsRef.current.onSessionEnd?.(reason);
           if (!session.opened) resolve(false);
         };
       }),

@@ -25,7 +25,7 @@ function cameraErrorText(error: unknown): string {
 }
 
 /** Camera permission, preview with a framing guide, and start/stop of the live stream. */
-export function CameraView({ stream }: { stream: StreamApi }) {
+export function CameraView({ stream, onUserStop }: { stream: StreamApi; onUserStop?: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRef = useRef<MediaStream | null>(null);
   const [cameraState, setCameraState] = useState<CameraState>("off");
@@ -101,6 +101,7 @@ export function CameraView({ stream }: { stream: StreamApi }) {
   }
 
   function handleStop() {
+    onUserStop?.();
     stream.stop();
     releaseCamera();
     setCameraState("off");

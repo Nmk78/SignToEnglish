@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { FAKE, SEND_FPS, fakeSessions, resetFake, stampedFps } from "./helpers";
+import { FAKE, SEND_FPS, fakeSessions, readAloudOff, resetFake, stampedFps } from "./helpers";
 
-test.beforeEach(async ({ request }) => resetFake(request));
+test.beforeEach(async ({ page, request }) => {
+  await resetFake(request);
+  await readAloudOff(page);
+});
 
 test("webcam path: frames from the camera produce partial and committed captions", async ({ page, request }) => {
   await page.goto("/");

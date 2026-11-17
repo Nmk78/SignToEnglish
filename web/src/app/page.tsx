@@ -4,15 +4,27 @@ import { useState } from "react";
 import { CameraView } from "@/components/CameraView";
 import { Captions } from "@/components/Captions";
 import { DomainPanel } from "@/components/DomainPanel";
+import { SpeechOutput } from "@/components/SpeechOutput";
 import { StatusBar } from "@/components/StatusBar";
 import { VideoInputPanel } from "@/components/VideoInputPanel";
 import { useHealth } from "@/hooks/useHealth";
+import { useSpeech } from "@/hooks/useSpeech";
 import { useStream } from "@/hooks/useStream";
 
 type InputMode = "camera" | "file";
 
 export default function Home() {
-  const stream = useStream();
+  const speech = useSpeech();
+  const stream = useStream({
+    onSessionStart: speech.sessionStarted,
+    // Only committed sentences are read aloud.
+    onFinal: speech.sentenceCommitted,
+    // A lost connection silences speech. A normal end does not: when a "play as live" file runs
+    // out, its last sentences are still read. Pressing Stop silences speech through onUserStop.
+    onSessionEnd: (reason) => {
+      if (reason !== "stopped") speech.silence();
+    },
+  });
   const health = useHealth();
   const [mode, setMode] = useState<InputMode>("camera");
   const busy = stream.phase !== "idle";
@@ -63,10 +75,25 @@ export default function Home() {
               </button>
             </div>
           </div>
-          {mode === "camera" ? <CameraView stream={stream} /> : <VideoInputPanel stream={stream} />}
+          {mode === "camera" ? (
+            <CameraView stream={stream} onUserStop={speech.silence} />
+          ) : (
+            <VideoInputPanel
+              stream={stream}
+              onUserStop={speech.silence}
+              onSpeak={speech.availability === "ready" ? speech.speakOne : undefined}
+            />
+          )}
         </section>
 
-        <Captions committed={stream.committed} partial={stream.partial} active={busy} onClear={stream.clearCaptions} />
+        <Captions
+          committed={stream.committed}
+          partial={stream.partial}
+          active={busy}
+          onClear={stream.clearCaptions}
+          spokenAloud={speech.active}
+          controls={<SpeechOutput speech={speech} />}
+        />
       </section>
 
       <DomainPanel />

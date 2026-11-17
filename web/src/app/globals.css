@@ -90,7 +90,19 @@ main { max-width: 1240px; margin: auto; padding: 0 34px; }
 .link-button { color: var(--green); background: none; border: 0; font-size: 12px; font-weight: 700; text-decoration: underline; padding: 4px 0; }
 .link-button:disabled { color: #aeb9b4; text-decoration: none; }
 
-.captions-scroll { height: 360px; overflow-y: auto; background: var(--mint); margin: 22px 0 0; padding: 22px; }
+.speech-output { margin: 16px 0 0; padding: 12px 14px; border: 1px solid var(--line); background: white; }
+.speech-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.speech-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 750; cursor: pointer; }
+.speech-toggle input { width: 16px; height: 16px; accent-color: var(--green); }
+.speech-field { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); font-weight: 700; }
+.speech-field span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.speech-field select { max-width: 170px; font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); background: white; color: var(--ink); }
+.speech-field input[type="range"] { width: 96px; accent-color: var(--green); }
+.speech-status { margin: 9px 0 0; font-size: 11px; color: var(--muted); }
+.speech-output .warning { margin-top: 9px; font-size: 12px; }
+.segment-speak { margin-left: auto; border: 1px solid var(--line); background: white; color: var(--green); font-size: 11px; font-weight: 700; padding: 4px 8px; }
+
+.captions-scroll { height: 360px; overflow-y: auto; background: var(--mint); margin: 14px 0 0; padding: 22px; }
 .captions-empty { height: 100%; display: grid; place-content: center; text-align: center; color: #5b6963; }
 .captions-empty p { margin: 0 0 6px; font-weight: 700; font-size: 14px; }
 .captions-empty small { font-size: 11px; line-height: 1.45; }

@@ -23,8 +23,19 @@ export const VIDEO_MESSAGES = {
  * "Translate file" uploads it to POST /translate and lists each sentence with its time range;
  * "Play as live" plays it in the page and streams its frames, stamped with their media time,
  * through the same hook and frame pump as the webcam.
+ *
+ * Read-aloud: "Play as live" is read aloud like the webcam. A "Translate file" result is not
+ * read automatically; each sentence has its own Speak button.
  */
-export function VideoInputPanel({ stream }: { stream: StreamApi }) {
+interface VideoInputPanelProps {
+  stream: StreamApi;
+  /** Called when the user presses Stop during "play as live" (not when the file simply ends). */
+  onUserStop?: () => void;
+  /** Speaks one sentence of a "translate file" result; absent when no local voice exists. */
+  onSpeak?: (text: string) => void;
+}
+
+export function VideoInputPanel({ stream, onUserStop, onSpeak }: VideoInputPanelProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const urlRef = useRef<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -158,6 +169,11 @@ export function VideoInputPanel({ stream }: { stream: StreamApi }) {
                       {formatMediaTime(segment.start_ms)} – {formatMediaTime(segment.end_ms)}
                     </button>
                     <span className="segment-text">{segment.text}</span>
+                    {onSpeak && segment.text.trim() !== "" && (
+                      <button className="segment-speak" onClick={() => onSpeak(segment.text)} data-testid="segment-speak">
+                        Speak
+                      </button>
+                    )}
                   </li>
                 ))}
               </ol>
@@ -189,7 +205,13 @@ export function VideoInputPanel({ stream }: { stream: StreamApi }) {
           {upload.kind === "working" ? "Translating…" : "Translate file"}
         </button>
         {live ? (
-          <button className="stop-button" onClick={() => stream.stop()} disabled={stream.phase === "stopping"} data-testid="live-stop">
+          <button
+            className="stop-button"
+            onClick={() => {
+              onUserStop?.();
+              stream.stop();
+            }}
+            disabled={stream.phase === "stopping"} data-testid="live-stop">
             <span aria-hidden="true">■</span> {stream.phase === "stopping" ? "Finishing…" : "Stop"}
           </button>
         ) : (

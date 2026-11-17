@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { FAKE, fakeSessions, resetFake } from "./helpers";
+import { FAKE, fakeSessions, readAloudOff, resetFake } from "./helpers";
 
-test.beforeEach(async ({ request }) => resetFake(request));
+test.beforeEach(async ({ page, request }) => {
+  await resetFake(request);
+  await readAloudOff(page);
+});
 
 test("a dropped connection gives a clear message, keeps committed text, and can be restarted", async ({ page, request }) => {
   await page.goto("/");

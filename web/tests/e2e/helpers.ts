@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { type APIRequestContext, expect } from "@playwright/test";
+import { type APIRequestContext, type Page, expect } from "@playwright/test";
 
 export const FAKE = "http://127.0.0.1:8787";
 export const CLIP_FILE = resolve(__dirname, "..", "media", "clip.webm");
@@ -24,6 +24,16 @@ export interface FakeSession {
   finals_sent: number;
   partials_sent: number;
   closed: boolean;
+}
+
+/**
+ * Switches read-aloud off through the page's own remembered setting, so tests that are not about
+ * speech do not make this computer talk. (Read-aloud is on by default.)
+ */
+export async function readAloudOff(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("s2e.speech", JSON.stringify({ enabled: false, voiceUri: null, rate: 1 }));
+  });
 }
 
 export async function resetFake(request: APIRequestContext): Promise<void> {

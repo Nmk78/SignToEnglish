@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import type { Caption } from "@/hooks/useStream";
 
 interface CaptionsProps {
@@ -8,10 +8,14 @@ interface CaptionsProps {
   partial: Caption | null;
   active: boolean;
   onClear: () => void;
+  /** True while committed sentences are being read aloud by the page itself. */
+  spokenAloud: boolean;
+  /** Read-aloud controls, shown above the captions. */
+  controls?: ReactNode;
 }
 
 /** Committed sentences (final, never change) and, below them, the unstable partial line. */
-export function Captions({ committed, partial, active, onClear }: CaptionsProps) {
+export function Captions({ committed, partial, active, onClear, spokenAloud, controls }: CaptionsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,6 +37,8 @@ export function Captions({ committed, partial, active, onClear }: CaptionsProps)
         </button>
       </div>
 
+      {controls}
+
       <div className="captions-scroll" ref={scrollRef}>
         {empty ? (
           <div className="captions-empty">
@@ -41,7 +47,14 @@ export function Captions({ committed, partial, active, onClear }: CaptionsProps)
           </div>
         ) : (
           <>
-            <ol className="captions-final" aria-live="polite" aria-label="Committed sentences" data-testid="captions-final">
+            {/* When the page reads sentences aloud itself, the list is not a live region, so a
+                screen reader does not say each sentence a second time. It stays readable. */}
+            <ol
+              className="captions-final"
+              aria-live={spokenAloud ? "off" : "polite"}
+              aria-label="Committed sentences"
+              data-testid="captions-final"
+            >
               {committed.map((caption) => (
                 <li key={caption.key} className="caption-final" data-testid="caption-final">
                   {caption.text}

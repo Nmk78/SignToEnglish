@@ -17,6 +17,9 @@
 //   POST /__dev/drop       cut every open WebSocket without a close handshake
 //   POST /__dev/reset      forget sessions, health back to ready
 //   POST /__dev/health     body {"mode": "ready" | "not_ready"}
+//   POST /__dev/captions   body {"mode": "auto" | "manual"}; in manual mode frames produce no
+//                          captions and a test sends them itself with /__dev/send
+//   POST /__dev/send       body {"messages": [...]}; each is sent as JSON on every open socket
 
 import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
@@ -38,6 +41,7 @@ const CANNED = [
 ];
 
 let healthMode = "ready";
+let captionMode = "auto";
 /** @type {Buffer | null} */
 let lastFrame = null;
 let nextSessionId = 1;
@@ -185,8 +189,36 @@ const server = createServer((req, res) => {
     for (const ws of sockets) ws.terminate();
     sessions = [];
     healthMode = "ready";
+    captionMode = "auto";
     lastFrame = null;
     sendJson(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "POST" && (url.pathname === "/__dev/captions" || url.pathname === "/__dev/send")) {
+    readBody(req, 65536).then(
+      (body) => {
+        try {
+          const parsed = JSON.parse(body.head.toString("utf8"));
+          if (url.pathname === "/__dev/captions") {
+            if (parsed.mode !== "auto" && parsed.mode !== "manual") throw new Error("bad mode");
+            captionMode = parsed.mode;
+            sendJson(res, 200, { mode: captionMode });
+            return;
+          }
+          if (!Array.isArray(parsed.messages)) throw new Error("bad messages");
+          let sent = 0;
+          for (const ws of sockets) {
+            if (ws.readyState !== ws.OPEN) continue;
+            for (const message of parsed.messages) ws.send(JSON.stringify(message));
+            sent += 1;
+          }
+          sendJson(res, 200, { sockets: sent, messages: parsed.messages.length });
+        } catch {
+          sendJson(res, 400, { detail: "bad request body" });
+        }
+      },
+      () => sendJson(res, 400, { detail: "bad body" }),
+    );
     return;
   }
   if (req.method === "POST" && url.pathname === "/__dev/health") {
@@ -296,7 +328,7 @@ wss.on("connection", (ws) => {
       }
       if (msg.type === "stop") {
         record.stop_received = true;
-        if (segmentFrames > 0) emit("final");
+        if (segmentFrames > 0 && captionMode === "auto") emit("final");
         ws.close(1000, "stopped");
         return;
       }
@@ -337,6 +369,7 @@ wss.on("connection", (ws) => {
     lastFrame = Buffer.from(buf.subarray(8));
     framesSinceStatus += 1;
 
+    if (captionMode !== "auto") return;
     if (segmentFrames === 0) segmentStartTs = ts;
     segmentFrames += 1;
     if (segmentFrames >= FINAL_EVERY_FRAMES) {

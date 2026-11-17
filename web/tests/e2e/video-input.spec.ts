@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { BAD_FILE, CLIP_FILE, CLIP_MS, SEND_FPS, fakeSessions, resetFake, stampedFps } from "./helpers";
+import { BAD_FILE, CLIP_FILE, CLIP_MS, SEND_FPS, fakeSessions, readAloudOff, resetFake, stampedFps } from "./helpers";
 
-test.beforeEach(async ({ request }) => resetFake(request));
+test.beforeEach(async ({ page, request }) => {
+  await resetFake(request);
+  await readAloudOff(page);
+});
 
 test("translate file: the upload goes to POST /translate and each sentence is listed with its time range", async ({ page, request }) => {
   await page.goto("/");
@@ -23,7 +26,7 @@ test("translate file: the upload goes to POST /translate and each sentence is li
   await expect(segments.nth(1)).toContainText("[canned] Nice to meet you.");
   // The result sits beside the video, and a time range jumps the video to that sentence.
   await expect(page.getByTestId("file-video")).toBeVisible();
-  await segments.nth(1).getByRole("button").click();
+  await segments.nth(1).locator(".segment-time").click();
   await expect.poll(() => page.getByTestId("file-video").evaluate((v: HTMLVideoElement) => v.currentTime)).toBeCloseTo(3.3, 1);
   // Translate file does not open a stream.
   expect(await fakeSessions(request)).toHaveLength(0);
