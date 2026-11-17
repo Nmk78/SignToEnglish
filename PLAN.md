@@ -4,6 +4,15 @@
 
 Claim labels: **[verified]** read from a primary source on 2026-11-16 (sources in `OPEN_QUESTIONS.md`, "Verification log"); **[inferred]** reasoned from verified facts; **[assumed]** not checked. Every time figure is an estimate unless it says "measured".
 
+## 0. Changes after revision 2 (user decisions, 2026-11-17)
+
+- **Who signs.** The user will not record. A demo signer will sign at the show; she is not fluent in ASL and may be able to record before the show (not confirmed). Everywhere this plan says the user learns, records, or presents the sentences, read "the demo signer". `OPEN_QUESTIONS.md`, Q10, has the consequences.
+- **Downloaded data.** Data used to train or improve the model, other than the demo signer's recordings, is downloaded. Every dataset is still a stop point approved by name, and the user gets a heads-up before any download over 50 MB. Files over 100 MB are on hold until the user says they are on Wi-Fi.
+- **What downloaded data can and cannot do [inferred].** The public ASL translation datasets with usable terms are the ones the two pretrained checkpoints were already trained on, so training further on them on this Mac is not expected to raise quality much. They serve the reproduction check (Step 2.1), the comparison of pose models, and clips for the video-input mode. Demo quality with the demo signer still depends on her recordings (Steps 2.2 and 2.4). If she cannot record, the live demo runs at the pretrained model's general quality, and the demo must say so.
+- **Demo inputs.** Both are required and already planned: a video clip as input, and the live camera as input.
+- **Pose models.** Lightweight RTMPose models for Steps 1.1 and 1.2; revisit at Step 2.1 (Step 0.3 result, `docs/feasibility.md`).
+- **Fixtures.** `hands_visible` is a 5-second excerpt of a public-domain video from Wikimedia Commons (`docs/DATA_LICENSES.md`); `hands_leave` is the user's own recording.
+
 ## 1. What changed in revision 2
 
 The user set four constraints on 2026-11-16, after revision 1:
@@ -102,7 +111,7 @@ Steps can be run by several sessions in parallel. `WORKERS.md` defines the track
   - File path and live path give identical arrays for the same frames.
   - Two runs give byte-identical output.
   - **Parity with the base model's own pipeline:** on the fixture clips, the model inputs produced by our extraction plus normalization match those produced by the Uni-Sign reference code within a stated tolerance, and the translated text is identical. This is the test that guards against the old training-and-inference mismatch, now between us and the pretrained model.
-  - Missing or low-confidence hands follow the documented rule from `docs/base_model_notes.md`; in the hands-out-of-frame clip the presence mask is false for those frames, and changing the raw values of a masked keypoint does not change the normalized output.
+  - Missing or low-confidence hands follow the base model's rule exactly as documented in `docs/base_model_notes.md` (a keypoint scoring 0.3 or less becomes zero). In the hands-out-of-frame clip a hand is masked in the frames where its scores are at or below the threshold; a lowered hand that the estimator still scores above 0.3 is not masked, so the Phase 3 sentence-end detector must use its own stricter evidence and not this mask. Changing the raw values of a masked keypoint does not change the normalized output, except for the three reference points (each hand's root point and the face reference point), which the base model measures from even when their score is low. (Reworded on 2026-11-17 by user decision: exact parity with the base model is kept.)
   - `normalize_keypoints` is defined in exactly one module; a test searches `src/` for a second implementation.
   - A blank synthetic video does not raise and yields an all-false presence mask.
 - **Metric target:** hands detected in at least 90% of frames of the hands-visible fixture. [assumed]

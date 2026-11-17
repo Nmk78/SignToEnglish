@@ -185,7 +185,11 @@ Reasons [assumed until Step 2.4 measures]: full fine-tuning of 582 M parameters 
 
 ## Q10. Who signs, and how much can be recorded — decided
 
-**Decision (user, 2026-11-16):** the user does not know ASL and will learn the domain sentences, record them, and present.
+**Decision changed (user, 2026-11-17):** the user will not record. A demo signer will sign at the show. She is not fluent in ASL, and she may be able to record before the show (not confirmed). Other training data is to be downloaded, with a heads-up before every download over 50 MB; files over 100 MB wait until the user is on Wi-Fi.
+
+What this changes [inferred]: everything below about a learner applies to the demo signer in place of the user. The model is tuned to whoever is in the recordings, so her recordings are what make the live demo work; downloaded datasets are the ones the pretrained checkpoints already saw and are not expected to add much. If she cannot record, the live camera runs at the pretrained model's general quality with a non-fluent signer, which will be poor, and the demo then leans on the video-clip input. Her consent is needed for recording and for being shown at the demo.
+
+**Earlier decision (user, 2026-11-16), superseded as to who signs:** the user does not know ASL and will learn the domain sentences, record them, and present.
 
 What this changes:
 

@@ -11,7 +11,7 @@ Constraints set by the user on 2026-11-16:
 - It is a **project-show demo**. It must work well inside one conversation domain with the demo signer; it does not have to work elsewhere, and it must not claim to.
 - It starts from an **existing pretrained sign language translation model** and adapts it. Nothing is trained from scratch.
 - Everything runs and trains on **this Mac** (Apple M5, 16 GB, no NVIDIA GPU). No rented or cloud compute.
-- Domain data is **recorded for this project** with `s2e record`. That tool collects video and English sentences for sequence-to-sequence fine-tuning. It must not become a closed-set phrase classifier: model output stays free text, and evaluation always includes sentences never seen in training.
+- Domain data is **recorded for this project** with `s2e record`, by the demo signer (user decision 2026-11-17: the user does not record; other training data may be downloaded, each dataset approved by name, with a heads-up to the user before any download over 50 MB). That tool collects video and English sentences for sequence-to-sequence fine-tuning. It must not become a closed-set phrase classifier: model output stays free text, and evaluation always includes sentences never seen in training.
 
 ## Status gate
 
